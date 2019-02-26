@@ -69,12 +69,12 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 ```{r}
 
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional")
-dirwd<-"C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional"
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
+#dirwd<-"C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/bank-additional"
 
 # Data file alread
 
-df<-read.table(paste0(dirwd,"/bank-additional-full.csv"),header=TRUE,sep=";")
+df<-read.table('bank-additional-full.csv',header=TRUE,sep=";")
 
 # Select your 5000 register sample (random sample)
 
@@ -84,124 +84,4 @@ llista<-sort(llista)
 #llista
 
 df<-df[llista,]
-save.image("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional/sss.RData")
-
-#Comprobar el tamaño de la muestra
-nrow(df)
-ncol(df)
-dim(df)
-```
-
-# Exploratory Data Analysis
-
-```{r}
-names(df)
-# Overview of data frame 
-summary(df)
-
-# Graphics
-
-
-# Errors: set to NA. Ex: Duration<=0
-ll<-which(df$duration<=0);ll
-df$duration[ll]<-NA
-
-summary(df[,vars_target])
-
-```
-
-# Revisión de cada variable
-
-```{r}
-
-# age
-summary(df$age)
-hist(df$age,col="cyan",main="age - Histogram")
-boxplot(df$age, labels=row.names(df))
-
-# job
-summary(df$job)
-
-# marital
-summary(df$marital)
-
-# education
-summary(df$education)
-
-# default
-summary(df$default)
-
-# housing
-summary(df$housing)
-
-# loan
-summary(df$loan)
-
-# contact
-summary(df$contact)
-
-# month
-summary(df$month)
-
-# day_of_week
-summary(df$day_of_week)
-
-# duration
-summary(df$duration)
-hist(df$duration,col="cyan",main="duration - Histogram")
-boxplot(df$duration, labels=row.names(df))
-
-# campaign
-summary(df$campaign)
-sum(is.na(df$campaign))
-hist(df$campaign,col="cyan",main="campaign - Histogram")
-boxplot(df$campaign, labels=row.names(df))
-
-# pdays
-summary(df$pdays)
-sum(is.na(df$pdays))
-hist(df$pdays,col="cyan",main="pdays - Histogram")
-boxplot(df$pdays, labels=row.names(df))
-
-# previous
-summary(df$previous)
-sum(is.na(df$previous))
-hist(df$previous,col="cyan",main="previous - Histogram")
-boxplot(df$previous, labels=row.names(df))
-
-# poutcome
-summary(df$poutcome)
-
-# emp.var.rate
-summary(df$emp.var.rate)
-sum(is.na(df$emp.var.rate))
-hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
-boxplot(df$emp.var.rate, labels=row.names(df))
-
-# cons.price.idx
-summary(df$cons.price.idx)
-sum(is.na(df$cons.price.idx))
-hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
-boxplot(df$cons.price.idx, labels=row.names(df))
-
-# cons.conf.idx
-summary(df$cons.conf.idx)
-sum(is.na(df$cons.conf.idx))
-hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
-boxplot(df$cons.conf.idx, labels=row.names(df))
-
-# euribor3m
-summary(df$euribor3m)
-sum(is.na(df$euribor3m))
-hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
-boxplot(df$euribor3m, labels=row.names(df))
-
-# nr.employed
-summary(df$nr.employed)
-sum(is.na(df$nr.employed))
-hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
-boxplot(df$nr.employed, labels=row.names(df))
-
-# y
-summary(df$y)
-```
+save.image("set-datos.RData")
