@@ -1,7 +1,6 @@
 ---
 title: "Load Data"
-author: "Me"
-date: "14 de febrero de 2019"
+author: "Guillem Valls, Sergio Mazzariol"
 output:
   word_document:
     toc: yes
@@ -21,20 +20,6 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-# Presentation
-## R Markdowns document
-
-This is an R Markdown document. 
-We are showing some examples of EDA. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. Use * to provide emphasis such as *italics* and **bold**.
-
-Create lists: Unordered * and +     or   ordered   1. 2.  
-
-  1. Item 1
-  2. Item 2
-    + Item 2a
-    + Item 2b
-
 
 # Bank client data
 
@@ -91,30 +76,20 @@ dirwd<-"C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la in
 
 df<-read.table(paste0(dirwd,"/bank-additional-full.csv"),header=TRUE,sep=";")
 
-head(df)
-
 # Select your 5000 register sample (random sample)
-
-nrow(df)
-ncol(df)
-dim(df)
-
-#1:10
 
 set.seed(19101990)
 llista<-sample(size=5000,x=1:nrow(df),replace=FALSE)
 llista<-sort(llista)
 #llista
 
-# Access row
-df[3:5,]
-df[,5]
-
-df[c(1,3,5),c(2,4)]
-
 df<-df[llista,]
 save.image("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional/sss.RData")
 
+#Comprobar el tamaño de la muestra
+nrow(df)
+ncol(df)
+dim(df)
 ```
 
 # Exploratory Data Analysis
@@ -125,31 +100,7 @@ names(df)
 summary(df)
 
 # Graphics
-## Numeric or factors?
 
-hist(df$duration)  
-hist(df$duration,freq=FALSE)  
-hist(df$duration,col="cyan")  
-hist(df$duration,col="cyan",main="Duration - Histogram")  
-hist(df$duration,50,col="cyan",main="Duration - Histogram")  
-hist(df$duration,breaks=c(0,500,1000,2000,5000),col="cyan",main="Duration - Histogram")  
-
-boxplot(df$duration) # base library
-library(car)
-Boxplot(df$duration,labels=row.names(df)) # car library
-summary(df$duration)
-
-df[2,3]
-df[2,"duration"]
-
-# vars_num
-# vars_fac
-names(df)
-# List with names of target variables
-vars_target<-names(df)[c(11,21)];
-vars_target
-
-summary(df[,vars_target])
 
 # Errors: set to NA. Ex: Duration<=0
 ll<-which(df$duration<=0);ll
@@ -162,75 +113,41 @@ summary(df[,vars_target])
 # Revisión de cada variable
 
 ```{r}
-# age
-summary(df$age)
-# missings
-sum(is.na(df$age))
-
 
 # age
 summary(df$age)
-sum(is.na(df$age))
 hist(df$age,col="cyan",main="age - Histogram")
 boxplot(df$age, labels=row.names(df))
 
 # job
 summary(df$job)
-sum(is.na(df$job))
-hist(df$job,col="cyan",main="job - Histogram")
-boxplot(df$job, labels=row.names(df))
 
 # marital
 summary(df$marital)
-sum(is.na(df$marital))
-hist(df$marital,col="cyan",main="marital - Histogram")
-boxplot(df$marital, labels=row.names(df))
 
 # education
 summary(df$education)
-sum(is.na(df$education))
-hist(df$education,col="cyan",main="education - Histogram")
-boxplot(df$education, labels=row.names(df))
 
 # default
 summary(df$default)
-sum(is.na(df$default))
-hist(df$default,col="cyan",main="default - Histogram")
-boxplot(df$default, labels=row.names(df))
 
 # housing
 summary(df$housing)
-sum(is.na(df$housing))
-hist(df$housing,col="cyan",main="housing - Histogram")
-boxplot(df$housing, labels=row.names(df))
 
 # loan
 summary(df$loan)
-sum(is.na(df$loan))
-hist(df$loan,col="cyan",main="loan - Histogram")
-boxplot(df$loan, labels=row.names(df))
 
 # contact
 summary(df$contact)
-sum(is.na(df$contact))
-hist(df$contact,col="cyan",main="contact - Histogram")
-boxplot(df$contact, labels=row.names(df))
 
 # month
 summary(df$month)
-sum(is.na(df$month))
-hist(df$month,col="cyan",main="month - Histogram")
-boxplot(df$month, labels=row.names(df))
 
 # day_of_week
 summary(df$day_of_week)
-sum(is.na(df$day_of_week))
-hist(df$day_of_week,col="cyan",main="day_of_week - Histogram")
-boxplot(df$day_of_week, labels=row.names(df))
 
 # duration
 summary(df$duration)
-sum(is.na(df$duration))
 hist(df$duration,col="cyan",main="duration - Histogram")
 boxplot(df$duration, labels=row.names(df))
 
@@ -254,9 +171,6 @@ boxplot(df$previous, labels=row.names(df))
 
 # poutcome
 summary(df$poutcome)
-sum(is.na(df$poutcome))
-hist(df$poutcome,col="cyan",main="poutcome - Histogram")
-boxplot(df$poutcome, labels=row.names(df))
 
 # emp.var.rate
 summary(df$emp.var.rate)
@@ -290,10 +204,4 @@ boxplot(df$nr.employed, labels=row.names(df))
 
 # y
 summary(df$y)
-sum(is.na(df$y))
-hist(df$y,col="cyan",main="y - Histogram")
-boxplot(df$y, labels=row.names(df))
-
-
-
 ```
