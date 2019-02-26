@@ -1,0 +1,299 @@
+---
+title: "Load Data"
+author: "Me"
+date: "14 de febrero de 2019"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Presentation
+## R Markdowns document
+
+This is an R Markdown document. 
+We are showing some examples of EDA. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. Use * to provide emphasis such as *italics* and **bold**.
+
+Create lists: Unordered * and +     or   ordered   1. 2.  
+
+  1. Item 1
+  2. Item 2
+    + Item 2a
+    + Item 2b
+
+
+# Bank client data
+
+## Description 
+
+*Input variables:*
+
+  1. age (numeric)
+  2. job : type of job (categorical: 'admin.','blue-collar','entrepreneur','housemaid','management','retired','self-employed','services','student','technician','unemployed','unknown')
+  3. marital : marital status (categorical: 'divorced','married','single','unknown'; note: 'divorced' means divorced or widowed)
+  4. education (categorical:'basic.4y','basic.6y','basic.9y','high.school','illiterate','professional.course','university.degree','unknown')
+  5. default: has credit in default? (categorical: 'no','yes','unknown')
+  6. housing: has housing loan? (categorical: 'no','yes','unknown')
+  7. loan: has personal loan? (categorical: 'no','yes','unknown')# related with the last contact of the current campaign:
+  8. contact: contact communication type (categorical:'cellular','telephone')
+  9. month: last contact month of year (categorical: 'jan', 'feb', 'mar',..., 'nov', 'dec')
+  10. day_of_week: last contact day of the week (categorical:'mon','tue','wed','thu','fri')
+  11. duration: last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model.
+  12. campaign: number of contacts performed during this campaign and for this client (numeric, includes last contact)
+  13. pdays: number of days that passed by after the client was last contacted from a previous campaign (numeric; 999 means client was not previously contacted)
+  14. previous: number of contacts performed before this campaign and for this client (numeric)
+  15. poutcome: outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')# social and economic context attributes
+  16. emp.var.rate: employment variation rate - quarterly indicator (numeric)
+  17. cons.price.idx: consumer price index - monthly indicator (numeric)
+  18. cons.conf.idx: consumer confidence index - monthly indicator (numeric)
+  19. euribor3m: euribor 3 month rate - daily indicator (numeric)
+  20. nr.employed: number of employees - quarterly indicator (numeric)
+  21. y - has the client subscribed a term deposit? (binary: 'yes','no')
+
+# Loading packages
+
+```{r, include=FALSE}
+# Load Required Packages: to be increased over the course
+library(car)  # Manual way, use for Boxplot()
+
+requiredPackages <- c("car","knitr")
+missingPackages <- requiredPackages[!(requiredPackages %in% installed.packages()[,"Package"])]
+
+if(length(missingPackages)) install.packages(missingPackages)
+lapply(requiredPackages, require, character.only = TRUE)
+
+```
+
+
+# Loading data
+
+
+```{r}
+
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional")
+dirwd<-"C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional"
+
+# Data file alread
+
+df<-read.table(paste0(dirwd,"/bank-additional-full.csv"),header=TRUE,sep=";")
+
+head(df)
+
+# Select your 5000 register sample (random sample)
+
+nrow(df)
+ncol(df)
+dim(df)
+
+#1:10
+
+set.seed(19101990)
+llista<-sample(size=5000,x=1:nrow(df),replace=FALSE)
+llista<-sort(llista)
+#llista
+
+# Access row
+df[3:5,]
+df[,5]
+
+df[c(1,3,5),c(2,4)]
+
+df<-df[llista,]
+save.image("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/bank-additional/sss.RData")
+
+```
+
+# Exploratory Data Analysis
+
+```{r}
+names(df)
+# Overview of data frame 
+summary(df)
+
+# Graphics
+## Numeric or factors?
+
+hist(df$duration)  
+hist(df$duration,freq=FALSE)  
+hist(df$duration,col="cyan")  
+hist(df$duration,col="cyan",main="Duration - Histogram")  
+hist(df$duration,50,col="cyan",main="Duration - Histogram")  
+hist(df$duration,breaks=c(0,500,1000,2000,5000),col="cyan",main="Duration - Histogram")  
+
+boxplot(df$duration) # base library
+library(car)
+Boxplot(df$duration,labels=row.names(df)) # car library
+summary(df$duration)
+
+df[2,3]
+df[2,"duration"]
+
+# vars_num
+# vars_fac
+names(df)
+# List with names of target variables
+vars_target<-names(df)[c(11,21)];
+vars_target
+
+summary(df[,vars_target])
+
+# Errors: set to NA. Ex: Duration<=0
+ll<-which(df$duration<=0);ll
+df$duration[ll]<-NA
+
+summary(df[,vars_target])
+
+```
+
+# Revisión de cada variable
+
+```{r}
+# age
+summary(df$age)
+# missings
+sum(is.na(df$age))
+
+
+# age
+summary(df$age)
+sum(is.na(df$age))
+hist(df$age,col="cyan",main="age - Histogram")
+boxplot(df$age, labels=row.names(df))
+
+# job
+summary(df$job)
+sum(is.na(df$job))
+hist(df$job,col="cyan",main="job - Histogram")
+boxplot(df$job, labels=row.names(df))
+
+# marital
+summary(df$marital)
+sum(is.na(df$marital))
+hist(df$marital,col="cyan",main="marital - Histogram")
+boxplot(df$marital, labels=row.names(df))
+
+# education
+summary(df$education)
+sum(is.na(df$education))
+hist(df$education,col="cyan",main="education - Histogram")
+boxplot(df$education, labels=row.names(df))
+
+# default
+summary(df$default)
+sum(is.na(df$default))
+hist(df$default,col="cyan",main="default - Histogram")
+boxplot(df$default, labels=row.names(df))
+
+# housing
+summary(df$housing)
+sum(is.na(df$housing))
+hist(df$housing,col="cyan",main="housing - Histogram")
+boxplot(df$housing, labels=row.names(df))
+
+# loan
+summary(df$loan)
+sum(is.na(df$loan))
+hist(df$loan,col="cyan",main="loan - Histogram")
+boxplot(df$loan, labels=row.names(df))
+
+# contact
+summary(df$contact)
+sum(is.na(df$contact))
+hist(df$contact,col="cyan",main="contact - Histogram")
+boxplot(df$contact, labels=row.names(df))
+
+# month
+summary(df$month)
+sum(is.na(df$month))
+hist(df$month,col="cyan",main="month - Histogram")
+boxplot(df$month, labels=row.names(df))
+
+# day_of_week
+summary(df$day_of_week)
+sum(is.na(df$day_of_week))
+hist(df$day_of_week,col="cyan",main="day_of_week - Histogram")
+boxplot(df$day_of_week, labels=row.names(df))
+
+# duration
+summary(df$duration)
+sum(is.na(df$duration))
+hist(df$duration,col="cyan",main="duration - Histogram")
+boxplot(df$duration, labels=row.names(df))
+
+# campaign
+summary(df$campaign)
+sum(is.na(df$campaign))
+hist(df$campaign,col="cyan",main="campaign - Histogram")
+boxplot(df$campaign, labels=row.names(df))
+
+# pdays
+summary(df$pdays)
+sum(is.na(df$pdays))
+hist(df$pdays,col="cyan",main="pdays - Histogram")
+boxplot(df$pdays, labels=row.names(df))
+
+# previous
+summary(df$previous)
+sum(is.na(df$previous))
+hist(df$previous,col="cyan",main="previous - Histogram")
+boxplot(df$previous, labels=row.names(df))
+
+# poutcome
+summary(df$poutcome)
+sum(is.na(df$poutcome))
+hist(df$poutcome,col="cyan",main="poutcome - Histogram")
+boxplot(df$poutcome, labels=row.names(df))
+
+# emp.var.rate
+summary(df$emp.var.rate)
+sum(is.na(df$emp.var.rate))
+hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
+boxplot(df$emp.var.rate, labels=row.names(df))
+
+# cons.price.idx
+summary(df$cons.price.idx)
+sum(is.na(df$cons.price.idx))
+hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
+boxplot(df$cons.price.idx, labels=row.names(df))
+
+# cons.conf.idx
+summary(df$cons.conf.idx)
+sum(is.na(df$cons.conf.idx))
+hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
+boxplot(df$cons.conf.idx, labels=row.names(df))
+
+# euribor3m
+summary(df$euribor3m)
+sum(is.na(df$euribor3m))
+hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
+boxplot(df$euribor3m, labels=row.names(df))
+
+# nr.employed
+summary(df$nr.employed)
+sum(is.na(df$nr.employed))
+hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
+boxplot(df$nr.employed, labels=row.names(df))
+
+# y
+summary(df$y)
+sum(is.na(df$y))
+hist(df$y,col="cyan",main="y - Histogram")
+boxplot(df$y, labels=row.names(df))
+
+
+
+```
