@@ -1,6 +1,8 @@
 ---
 title: "deliverable-1"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -37,11 +39,9 @@ summary(df)
 ll<-which(df$duration<=0);ll
 df$duration[ll]<-NA
 
-summary(df[,vars_target])
-
 ```
 
-# Revisión de cada variable
+# Revisión de cada variable con summary y boxplots
 
 ```{r}
 
@@ -135,4 +135,19 @@ boxplot(df$nr.employed, labels=row.names(df))
 
 # y
 summary(df$y)
+```
+
+# crear lista de cuantitativos y cualitativos
+
+```{r}
+listaCualitativo<-list(df$job, df$marital, df$education, df$default, df$housing, df$loan, df$contact, df$month, df$day_of_week, df$poutcome, df$y)
+names(listaCualitativo)<-c(job, marital, education, default, housing, loan, contact, month, day_of_week, poutcome, y)
+listaCuantitativo<-list(df$age, df$duration, df$campaign, df$pdays, df$previous, df$emp.var.rate, df$cons.price.idx, df$cons.conf.idx, df$euribor3m, df$nr.employed)
+names(listaCuantitativo)<-c(age, duration, campaign, pdays, previous, emp.var.rate, cons.price.idx, cons.conf.idx, euribor3m, nr.employed)
+```
+
+# Crear factores adicionales para cada variable cuantitativa
+```{r}
+
+
 ```
