@@ -32,7 +32,9 @@ install.packages("missMDA",dependencies = TRUE)
 
 ```{r}
 
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
+
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis-master")
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
 
