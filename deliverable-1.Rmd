@@ -10,31 +10,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-
-# Loading packages
-
-```{r, include=FALSE}
-# Load Required Packages: to be increased over the course
-library(car)  # Manual way, use for Boxplot()
-
-requiredPackages <- c("car","knitr","FactoMineR","missMDA","mvoutlier","chemometrics")
-missingPackages <- requiredPackages[!(requiredPackages %in% installed.packages()[,"Package"])]
-
-if(length(missingPackages)) install.packages(missingPackages)
-lapply(requiredPackages, require, character.only = TRUE)
-install.packages("missMDA",dependencies = TRUE)
-
-```
-
-
 # Loading data
 
 
 ```{r}
 
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
-
-setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis-master")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis-master")
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
 
@@ -73,10 +55,12 @@ abline(h=917,col="magenta",lwd=2)
 
 #eliminamos las filas con NA's en las variables target (Duration & Y)
 sel<-which(is.na(df$duration));sel
-df<-df[-sel,]
+# si sel es igual a cero, no hacemos esta linea
+# df<-df[-sel,]
 
 sel<-which(is.na(df$y));sel
-df<-df[-sel,]
+# si sel es igual a cero, no hacemos esta linea
+# df<-df[-sel,]
 
 # Missing values de las variables no target, y hacerle imputación
 miss_row<-rowSums(is.na(df))
@@ -103,7 +87,7 @@ summary(df$education)
 df$education<-factor(df$education)
 
 
-# default
+# default (Hay demasiados unkown, vale la pena imputar? ) 
 sel<-which(df$default=="unknown");sel
 df$default[sel]<-NA
 summary(df$default)
@@ -121,78 +105,29 @@ df$loan[sel]<-NA
 summary(df$loan)
 df$loan<-factor(df$loan)
 
-# contact
-sel<-which(df$contact=="unknown");sel
-df$contact[sel]<-NA
-summary(df$contact)
-df$contact<-factor(df$contact)
+# contact (No hay uknows)
 
-# month
-sel<-which(df$month=="unknown");sel
-df$month[sel]<-NA
-summary(df$month)
-df$month<-factor(df$month)
+# month (No hay uknows)
 
-# day_of_week
-sel<-which(df$day_of_week=="unknown");sel
-df$day_of_week[sel]<-NA
-summary(df$day_of_week)
-df$day_of_week<-factor(df$day_of_week)
+# day_of_week (No hay uknows)
 
-# campaign
-sel<-which(df$campaign=="unknown");sel
-df$campaign[sel]<-NA
-summary(df$campaign)
-df$campaign<-factor(df$campaign)
+# campaign (No hay uknows)
 
-# pdays
-sel<-which(df$pdays=="unknown");sel
-df$pdays[sel]<-NA
-summary(df$pdays)
-df$pdays<-factor(df$pdays)
+# pdays (No hay uknows pero estan los 999)
 
-# previous
-sel<-which(df$previous=="unknown");sel
-df$previous[sel]<-NA
-summary(df$previous)
-df$previous<-factor(df$previous)
+# previous (No hay uknows)
 
-# poutcome
-sel<-which(df$poutcome=="unknown");sel
-df$poutcome[sel]<-NA
-summary(df$poutcome)
-df$poutcome<-factor(df$poutcome)
+# poutcome (No hay uknows)
 
-# emp.var.rate
-sel<-which(df$emp.var.rate=="unknown");sel
-df$emp.var.rate[sel]<-NA
-summary(df$emp.var.rate)
-df$emp.var.rate<-factor(df$emp.var.rate)
+# emp.var.rate (No hay uknows)
 
-# cons.price.idx
-sel<-which(df$cons.price.idx=="unknown");sel
-df$cons.price.idx[sel]<-NA
-summary(df$cons.price.idx)
-df$cons.price.idx<-factor(df$cons.price.idx)
+# cons.price.idx (No hay uknows)
 
-# cons.conf.idx
-sel<-which(df$cons.conf.idx=="unknown");sel
-df$cons.conf.idx[sel]<-NA
-summary(df$cons.conf.idx)
-df$cons.conf.idx<-factor(df$cons.conf.idx)
+# cons.conf.idx (No hay uknows)
 
-# euribor3m
-sel<-which(df$euribor3m=="unknown");sel
-df$euribor3m[sel]<-NA
-summary(df$euribor3m)
-df$euribor3m<-factor(df$euribor3m)
+# euribor3m (No hay uknows)
 
-# nr.employed
-sel<-which(df$nr.employed=="unknown");sel
-df$nr.employed[sel]<-NA
-summary(df$nr.employed)
-df$nr.employed<-factor(df$nr.employed)
-
+# nr.employed (No hay uknows)
 
 # Eliminamos los outliers que pueden ser NA's
 
