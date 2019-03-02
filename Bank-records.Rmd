@@ -1,19 +1,7 @@
 ---
-title: "Load Data"
-author: "Guillem Valls, Sergio Mazzariol"
-output:
-  word_document:
-    toc: yes
-    toc_depth: '3'
-  pdf_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: '3'
-  html_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: 3
-editor_options:
+title: "deliverable-1"
+output: html_document
+editor_options: 
   chunk_output_type: console
 ---
 
@@ -21,67 +9,323 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Bank client data
 
-## Description 
+# Loading data from an RData set
+```{r}
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis-master")
 
-*Input variables:*
+load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
 
-  1. age (numeric)
-  2. job : type of job (categorical: 'admin.','blue-collar','entrepreneur','housemaid','management','retired','self-employed','services','student','technician','unemployed','unknown')
-  3. marital : marital status (categorical: 'divorced','married','single','unknown'; note: 'divorced' means divorced or widowed)
-  4. education (categorical:'basic.4y','basic.6y','basic.9y','high.school','illiterate','professional.course','university.degree','unknown')
-  5. default: has credit in default? (categorical: 'no','yes','unknown')
-  6. housing: has housing loan? (categorical: 'no','yes','unknown')
-  7. loan: has personal loan? (categorical: 'no','yes','unknown')# related with the last contact of the current campaign:
-  8. contact: contact communication type (categorical:'cellular','telephone')
-  9. month: last contact month of year (categorical: 'jan', 'feb', 'mar',..., 'nov', 'dec')
-  10. day_of_week: last contact day of the week (categorical:'mon','tue','wed','thu','fri')
-  11. duration: last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model.
-  12. campaign: number of contacts performed during this campaign and for this client (numeric, includes last contact)
-  13. pdays: number of days that passed by after the client was last contacted from a previous campaign (numeric; 999 means client was not previously contacted)
-  14. previous: number of contacts performed before this campaign and for this client (numeric)
-  15. poutcome: outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')# social and economic context attributes
-  16. emp.var.rate: employment variation rate - quarterly indicator (numeric)
-  17. cons.price.idx: consumer price index - monthly indicator (numeric)
-  18. cons.conf.idx: consumer confidence index - monthly indicator (numeric)
-  19. euribor3m: euribor 3 month rate - daily indicator (numeric)
-  20. nr.employed: number of employees - quarterly indicator (numeric)
-  21. y - has the client subscribed a term deposit? (binary: 'yes','no')
+#Comprobar el tamaño de la muestra
+nrow(df)
+ncol(df)
+dim(df)
+```
 
-# Loading packages
+# Exploratory Data Analysis
+```{r}
+# Graphics
+names(df)
+# Overview of data frame 
+summary(df)
 
-```{r, include=FALSE}
-# Load Required Packages: to be increased over the course
-library(car)  # Manual way, use for Boxplot()
+# List with names of target variables
+vars_target<-names(df)[c(11,21)];vars_target
 
-requiredPackages <- c("car","knitr")
-missingPackages <- requiredPackages[!(requiredPackages %in% installed.packages()[,"Package"])]
+summary(df[,vars_target])
+hist(df$duration,100)
+boxplot(df$duration)
 
-if(length(missingPackages)) install.packages(missingPackages)
-lapply(requiredPackages, require, character.only = TRUE)
+# Some useful functions
+calcQ <- function(x) {
+  s.x <- summary(x)
+  iqr<-s.x[5]-s.x[2]
+  list(souti=s.x[2]-3*iqr, mouti=s.x[2]-1.5*iqr, min=s.x[1], q1=s.x[2], q2=s.x[3], 
+       q3=s.x[5], max=s.x[6], mouts=s.x[5]+1.5*iqr, souts=s.x[5]+3*iqr ) }
+out.var<-calcQ(df$duration)
+abline(h=611,col="red",lwd=2)
+abline(h=917,col="magenta",lwd=2)
+
+# Target numeric amb outliers greus: suprimir obs
+
+#eliminamos las filas con NA's en las variables target (Duration & Y)
+sel<-which(is.na(df$duration));sel
+df<-df[-sel,]
+
+sel<-which(is.na(df$y));sel
+df<-df[-sel,]
+
+# Missing values de las variables no target, y hacerle imputación
+miss_row<-rowSums(is.na(df))
+miss_col<-colSums(is.na(df))
+miss_col
+
+# age no consideramos ningún outlier
+# job
+sel<-which(df$job=="unknown");sel
+df$job[sel]<-NA
+summary(df$job)
+df$job<-factor(df$job)
+
+# marital
+sel<-which(df$marital=="unknown");sel
+df$marital[sel]<-NA
+summary(df$marital)
+df$marital<-factor(df$marital)
+
+# education
+sel<-which(df$education=="unknown");sel
+df$education[sel]<-NA
+summary(df$education)
+df$education<-factor(df$education)
+
+# default
+sel<-which(df$default=="unknown");sel
+df$default[sel]<-NA
+summary(df$default)
+df$default<-factor(df$default)
+
+# housing
+sel<-which(df$housing=="unknown");sel
+df$housing[sel]<-NA
+summary(df$housing)
+df$housing<-factor(df$housing)
+
+# loan
+sel<-which(df$loan=="unknown");sel
+df$loan[sel]<-NA
+summary(df$loan)
+df$loan<-factor(df$loan)
+
+# contact
+sel<-which(df$contact=="unknown");sel
+df$contact[sel]<-NA
+summary(df$contact)
+df$contact<-factor(df$contact)
+
+# month
+sel<-which(df$month=="unknown");sel
+df$month[sel]<-NA
+summary(df$month)
+df$month<-factor(df$month)
+
+# day_of_week
+sel<-which(df$day_of_week=="unknown");sel
+df$day_of_week[sel]<-NA
+summary(df$day_of_week)
+df$day_of_week<-factor(df$day_of_week)
+
+# campaign
+sel<-which(df$campaign=="unknown");sel
+df$campaign[sel]<-NA
+summary(df$campaign)
+df$campaign<-factor(df$campaign)
+
+# pdays
+sel<-which(df$pdays=="unknown");sel
+df$pdays[sel]<-NA
+summary(df$pdays)
+df$pdays<-factor(df$pdays)
+
+# previous
+sel<-which(df$previous=="unknown");sel
+df$previous[sel]<-NA
+summary(df$previous)
+df$previous<-factor(df$previous)
+
+# poutcome
+sel<-which(df$poutcome=="unknown");sel
+df$poutcome[sel]<-NA
+summary(df$poutcome)
+df$poutcome<-factor(df$poutcome)
+
+# emp.var.rate
+sel<-which(df$emp.var.rate=="unknown");sel
+df$emp.var.rate[sel]<-NA
+summary(df$emp.var.rate)
+df$emp.var.rate<-factor(df$emp.var.rate)
+
+# cons.price.idx
+sel<-which(df$cons.price.idx=="unknown");sel
+df$cons.price.idx[sel]<-NA
+summary(df$cons.price.idx)
+df$cons.price.idx<-factor(df$cons.price.idx)
+
+# cons.conf.idx
+sel<-which(df$cons.conf.idx=="unknown");sel
+df$cons.conf.idx[sel]<-NA
+summary(df$cons.conf.idx)
+df$cons.conf.idx<-factor(df$cons.conf.idx)
+
+# euribor3m
+sel<-which(df$euribor3m=="unknown");sel
+df$euribor3m[sel]<-NA
+summary(df$euribor3m)
+df$euribor3m<-factor(df$euribor3m)
+
+# nr.employed
+sel<-which(df$nr.employed=="unknown");sel
+df$nr.employed[sel]<-NA
+summary(df$nr.employed)
+df$nr.employed<-factor(df$nr.employed)
+
+
+# Eliminamos los outliers que pueden ser NA's
+
+sel<-which(df$duration>3600);length(sel);sel
+df<-df[-sel,]
+
+# Outliers univariants podeu detectar-los i marcar-los com NA
+
+# Errors: set to NA. Ex: Duration<=0
+ll<-which(df$duration<=0);ll
+df$duration[ll]<-NA
 
 ```
 
-
-# Loading data
-
+# Revisión de cada variable con summary y boxplots
 
 ```{r}
 
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
-#dirwd<-"C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/bank-additional"
+# age
+summary(df$age)
+hist(df$age,col="cyan",main="age - Histogram")
+boxplot(df$age, labels=row.names(df))
 
-# Data file alread
+# job
+summary(df$job)
 
-df<-read.table('bank-additional-full.csv',header=TRUE,sep=";")
+# marital
+summary(df$marital)
 
-# Select your 5000 register sample (random sample)
+# education
+summary(df$education)
 
-set.seed(19101990)
-llista<-sample(size=5000,x=1:nrow(df),replace=FALSE)
-llista<-sort(llista)
-#llista
+# default
+summary(df$default)
 
-df<-df[llista,]
-save.image("set-datos.RData")
+# housing
+summary(df$housing)
+
+# loan
+summary(df$loan)
+
+# contact
+summary(df$contact)
+
+# month
+summary(df$month)
+
+# day_of_week
+summary(df$day_of_week)
+
+# duration
+summary(df$duration)
+hist(df$duration,col="cyan",main="duration - Histogram")
+boxplot(df$duration, labels=row.names(df))
+
+# campaign
+summary(df$campaign)
+sum(is.na(df$campaign))
+hist(df$campaign,col="cyan",main="campaign - Histogram")
+boxplot(df$campaign, labels=row.names(df))
+
+# pdays
+summary(df$pdays)
+sum(is.na(df$pdays))
+hist(df$pdays,col="cyan",main="pdays - Histogram")
+boxplot(df$pdays, labels=row.names(df))
+
+# previous
+summary(df$previous)
+sum(is.na(df$previous))
+hist(df$previous,col="cyan",main="previous - Histogram")
+boxplot(df$previous, labels=row.names(df))
+
+# poutcome
+summary(df$poutcome)
+
+# emp.var.rate
+summary(df$emp.var.rate)
+sum(is.na(df$emp.var.rate))
+hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
+boxplot(df$emp.var.rate, labels=row.names(df))
+
+# cons.price.idx
+summary(df$cons.price.idx)
+sum(is.na(df$cons.price.idx))
+hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
+boxplot(df$cons.price.idx, labels=row.names(df))
+
+# cons.conf.idx
+summary(df$cons.conf.idx)
+sum(is.na(df$cons.conf.idx))
+hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
+boxplot(df$cons.conf.idx, labels=row.names(df))
+
+# euribor3m
+summary(df$euribor3m)
+sum(is.na(df$euribor3m))
+hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
+boxplot(df$euribor3m, labels=row.names(df))
+
+# nr.employed
+summary(df$nr.employed)
+sum(is.na(df$nr.employed))
+hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
+boxplot(df$nr.employed, labels=row.names(df))
+
+# y
+summary(df$y)
+```
+
+# crear lista de cuantitativos y cualitativos
+
+```{r}
+listaCualitativo<-list(df$job, df$marital, df$education, df$default, df$housing, df$loan, df$contact, df$month, df$day_of_week, df$poutcome, df$y)
+names(listaCualitativo)<-c("job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome", "y")
+listaCuantitativo<-list(df$age, df$duration, df$campaign, df$pdays, df$previous, df$emp.var.rate, df$cons.price.idx, df$cons.conf.idx, df$euribor3m, df$nr.employed)
+names(listaCuantitativo)<-c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")
+```
+
+# missing values de las variables target
+
+# missing values 
+
+# missing values de outliers
+
+
+# Crear factores adicionales para cada variable cuantitativa
+```{r}
+# Para Age
+qulist<-quantile(df$age,seq(0,1,0.25),na.rm=TRUE)
+
+varaux<-factor(cut(df$age,breaks=qulist,include.lowest=T))
+table(varaux)
+tapply(df$age,varaux,median)
+varaux<-factor(cut(df$age,breaks=c(18,30,40,50,92),include.lowest=T))
+table(varaux)
+tapply(df$age,varaux,median)
+
+df$f.age<-factor(cut(df$age,breaks=c(18,30,40,50,92),include.lowest=T))
+
+summary(df$f.age)
+levels(df$f.age)<-paste0("f.age-",levels(df$f.age))
+
+# Para duration
+qulist<-quantile(df$duration,seq(0,1,0.25),na.rm=TRUE)
+
+varaux<-factor(cut(df$duration,breaks=qulist,include.lowest=T))
+table(varaux)
+tapply(df$duration,varaux,median)
+varaux<-factor(cut(df$duration,breaks=c(18,30,40,50,92),include.lowest=T))
+table(varaux)
+tapply(df$duration,varaux,median)
+
+df$f.duration<-factor(cut(df$age,breaks=c(18,30,40,50,92),include.lowest=T))
+
+summary(df$f.age)
+levels(df$f.age)<-paste0("f.age-",levels(df$f.age))
+
+```
