@@ -16,7 +16,9 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 ```{r}
 
 #setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
-setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
 
@@ -33,12 +35,22 @@ names(df)
 # Overview of data frame 
 summary(df)
 
-# List with names of target variables
-vars_target<-names(df)[c(11,21)];vars_target
 
-summary(df[,vars_target])
-hist(df$duration,100)
-boxplot(df$duration)
+#######################GUILLEM:
+#Separamos variables target/no-target numéricas/categóricas (observamos un individuo cualquiera)
+df[1,]
+aux <- c(1,11:14,16:20)
+vars_num<-names(df)[aux];vars_num
+vars_cat<-names(df)[-aux];vars_cat
+vars_target<-names(df)[c(11,21)];vars_target
+#Analizamos variables según si son cat/num o target/no-target (obtenemos 4 clasificaciones)
+#target+categorica (miramos qué nivles tiene)
+levels(df$y) #solo hay yes/no no hay que hacer nada
+
+#target+numerica (miramos qué valores toma)
+summary(df$duration)#Vemos que hay valores muy pequeños, incluso 0, tambien de muy grandes.
+hist(df$duration,100) #Miramos distribución
+boxplot(df$duration) #Hacemos boxplot para ver outliers
 
 # Some useful functions
 calcQ <- function(x) {
@@ -46,12 +58,16 @@ calcQ <- function(x) {
   iqr<-s.x[5]-s.x[2]
   list(souti=s.x[2]-3*iqr, mouti=s.x[2]-1.5*iqr, min=s.x[1], q1=s.x[2], q2=s.x[3], 
        q3=s.x[5], max=s.x[6], mouts=s.x[5]+1.5*iqr, souts=s.x[5]+3*iqr ) }
-out.var<-calcQ(df$duration)
-abline(h=650,col="red",lwd=2)
-abline(h=979,col="magenta",lwd=2)
+out.var<-calcQ(df$duration);out.var
+abline(h=650,col="red",lwd=2) #Fijamos límite soft
+abline(h=979,col="magenta",lwd=2) #Fijamos límite extreme
+   #Hechamos un ojo a los valores más extremos
 
-# Target numeric amb outliers greus: suprimir obs
 
+#no-target+categorica
+#no-target+numerica
+
+#######################FI GUILLEM#####################3
 #eliminamos las filas con NA's en las variables target (Duration & Y)
 sel<-which(is.na(df$duration));sel
 # si sel es igual a cero, no hacemos esta linea
