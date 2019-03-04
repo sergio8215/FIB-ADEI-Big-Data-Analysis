@@ -51,9 +51,7 @@ levels(df$y) #solo hay yes/no no hay que hacer nada
 summary(df$duration)#Vemos que hay valores muy pequeños, incluso 0, tambien de muy grandes.
 hist(df$duration,100) #Miramos distribución
 boxplot(df$duration) #Hacemos boxplot para ver outliers
-
-# Some useful functions
-calcQ <- function(x) {
+calcQ <- function(x) {# Some useful functions
   s.x <- summary(x)
   iqr<-s.x[5]-s.x[2]
   list(souti=s.x[2]-3*iqr, mouti=s.x[2]-1.5*iqr, min=s.x[1], q1=s.x[2], q2=s.x[3], 
@@ -61,8 +59,11 @@ calcQ <- function(x) {
 out.var<-calcQ(df$duration);out.var
 abline(h=650,col="red",lwd=2) #Fijamos límite soft
 abline(h=979,col="magenta",lwd=2) #Fijamos límite extreme
-   #Hechamos un ojo a los valores más extremos
-
+aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] #Hechamos un ojo a los 10 valores más extremos
+df<-df[-aux[1:6],]#decidimos eliminamos los 6 elementos más extremos 
+boxplot(df$duration) #Hacemos boxplot de nuevo
+aux<-which(df$duration<5);length(aux);df[aux,'duration']#Ahora miramos los que son inferiores a 5s (no puede considerarse llamada)
+df<-df[-aux,]#decidimos eliminamos todos
 
 #no-target+categorica
 #no-target+numerica
