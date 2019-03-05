@@ -15,9 +15,9 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 
 ```{r}
 
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
@@ -39,10 +39,12 @@ summary(df)
 #######################GUILLEM:
 #Separamos variables target/no-target numéricas/categóricas (observamos un individuo cualquiera)
 df[1,]
-aux <- c(1,11:14,16:20)
+aux2<-c(11,21);
+vars_target<-names(df)[aux2];vars_target
+aux <- c(1,12:14,16:20)
 vars_num<-names(df)[aux];vars_num
-vars_cat<-names(df)[-aux];vars_cat
-vars_target<-names(df)[c(11,21)];vars_target
+vars_cat<-names(df)[c(2:10,15)];vars_cat
+
 #Analizamos variables según si son cat/num o target/no-target (obtenemos 4 clasificaciones)
 #target+categorica (miramos qué nivles tiene)
 levels(df$y) #solo hay yes/no no hay que hacer nada
@@ -71,20 +73,25 @@ for(i in vars_cat){
   print(summary(df[,i]))
 } #Vemos un resumen de los niveles de cada variable categorica
 for(i in vars_cat){#Vamos a poner NA's en los unknows
+  
   sel<-which(df[,i]=="unknown")
-  if(length(sel)>0) cat(i, " -- ", length(sel), "\n")
+  
+  if(length(sel)>0 && length(sel)<300) cat(i, " -- ", length(sel), "\n")
   df[sel,i]<-NA
   df[,i]<-factor(df[,i])
 }
-sel<-which(df$poutcome=="nonexistent")#Hacemos lo mismo con poutcome y sus nonexitent
-print(length(sel))
-df[sel,'poutcome']<-NA
-df$poutcome<-factor(df$poutcome)
+#sel<-which(df$poutcome=="nonexistent")#Hacemos lo mismo con poutcome y sus nonexitent
+#print(length(sel))
+#df[sel,'poutcome']<-NA
+#df$poutcome<-factor(df$poutcome)
+library(missMDA)
 
 res.input<-imputeMCA(df[,vars_cat],ncp=1)#No funciona
 summary(res.input$completeObs)
 #no-target+numerica
 
+res.input<-imputeMCA(df[,vars_dis],ncp=2)
+summary(res.input$completeObs)
 #######################FI GUILLEM#####################3
 #eliminamos las filas con NA's en las variables target (Duration & Y)
 sel<-which(is.na(df$duration));sel
