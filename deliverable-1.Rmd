@@ -15,9 +15,9 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 
 ```{r}
 
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
@@ -63,9 +63,26 @@ aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] #Hechamos un oj
 df<-df[-aux[1:6],]#decidimos eliminamos los 6 elementos más extremos 
 boxplot(df$duration) #Hacemos boxplot de nuevo
 aux<-which(df$duration<5);length(aux);df[aux,'duration']#Ahora miramos los que son inferiores a 5s (no puede considerarse llamada)
-df<-df[-aux,]#decidimos eliminamos todos
+df<-df[-aux,]#decidimos eliminarlos todos
 
 #no-target+categorica
+for(i in vars_cat){
+  cat("################ ",i," ##################\n")
+  print(summary(df[,i]))
+} #Vemos un resumen de los niveles de cada variable categorica
+for(i in vars_cat){#Vamos a poner NA's en los unknows
+  sel<-which(df[,i]=="unknown")
+  if(length(sel)>0) cat(i, " -- ", length(sel), "\n")
+  df[sel,i]<-NA
+  df[,i]<-factor(df[,i])
+}
+sel<-which(df$poutcome=="nonexistent")#Hacemos lo mismo con poutcome y sus nonexitent
+print(length(sel))
+df[sel,'poutcome']<-NA
+df$poutcome<-factor(df$poutcome)
+
+res.input<-imputeMCA(df[,vars_cat],ncp=1)#No funciona
+summary(res.input$completeObs)
 #no-target+numerica
 
 #######################FI GUILLEM#####################3
