@@ -248,6 +248,10 @@ df$f.education<-factor(df$f.education,levels=1:4,labels=c("Basic","High School",
 
 # FIN DE NO IMPRIMIR EN EL DOCUMENTO ---------------------------
 
+#save.image("set-datos-cat-imputados.RData")
+load("set-datos-cat-imputados.RData", envir = parent.frame(), verbose = FALSE)
+
+
 #no-target+numerica
 
 
@@ -256,70 +260,120 @@ df$f.education<-factor(df$f.education,levels=1:4,labels=c("Basic","High School",
 # Revisión de cada variable con summary y boxplots
 
 ```{r}
+	# age - Consideramos que no presenta ningún outlier  # preguntar si esta bien
 
-# age
-summary(df$age)
-hist(df$age,col="cyan",main="age - Histogram")
-boxplot(df$age, labels=row.names(df))
+	# campaign - Consideramos que en los 10 meses que dura la campaña, contactar a un cliente como maximo cada 15 días puede ser posible
+	summary(df$campaign)
+	hist(df$campaign,col="cyan",main="campaign - Histogram")
+	boxplot(df$campaign, labels=row.names(df))
 
-# duration
-summary(df$duration)
-hist(df$duration,col="cyan",main="duration - Histogram")
-boxplot(df$duration, labels=row.names(df))
+	out.var<-calcQ(df$campaign);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$campaign>20);length(aux);df[aux,'campaign'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"campaign"]<-NA # los ponemos como NA's
+	boxplot(df$campaign) #Hacemos boxplot de nuevo
+	
 
-# campaign
-summary(df$campaign)
-sum(is.na(df$campaign))
-hist(df$campaign,col="cyan",main="campaign - Histogram")
-boxplot(df$campaign, labels=row.names(df))
+	# pdays - preguntar creemos que no hay outliers, solo se han contactado a 175 personas en la campaña previa
+	summary(df$pdays)
+	aux2<-which(df$pdays<999);summary(df$pdays[aux2])
+	aux<-df$pdays[aux2]
+	hist(aux,col="cyan",main="pdays - Histogram")
+	boxplot(aux, labels=row.names(df))
 
-# pdays
-summary(df$pdays)
-sum(is.na(df$pdays))
-hist(df$pdays,col="cyan",main="pdays - Histogram")
-boxplot(df$pdays, labels=row.names(df))
+	out.var<-calcQ(aux);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$pdays>20);length(aux);df[aux,'pdays'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"pdays"]<-NA # los ponemos como NA's
+	boxplot(df$pdays) #Hacemos boxplot de nuevo
 
-# previous
-summary(df$previous)
-sum(is.na(df$previous))
-hist(df$previous,col="cyan",main="previous - Histogram")
-boxplot(df$previous, labels=row.names(df))
 
-# poutcome
-summary(df$poutcome)
 
-# emp.var.rate
-summary(df$emp.var.rate)
-sum(is.na(df$emp.var.rate))
-hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
-boxplot(df$emp.var.rate, labels=row.names(df))
+	# previous - preguntar - Nosotros consideramos que no hay outliers
+	summary(df$previous)
+	hist(df$previous,col="cyan",main="previous - Histogram")
+	boxplot(df$previous, labels=row.names(df))
 
-# cons.price.idx
-summary(df$cons.price.idx)
-sum(is.na(df$cons.price.idx))
-hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
-boxplot(df$cons.price.idx, labels=row.names(df))
+	out.var<-calcQ(df$previous);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$previous>20);length(aux);df[aux,'previous'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"previous"]<-NA # los ponemos como NA's
+	boxplot(df$previous) #Hacemos boxplot de nuevo
 
-# cons.conf.idx
-summary(df$cons.conf.idx)
-sum(is.na(df$cons.conf.idx))
-hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
-boxplot(df$cons.conf.idx, labels=row.names(df))
 
-# euribor3m
-summary(df$euribor3m)
-sum(is.na(df$euribor3m))
-hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
-boxplot(df$euribor3m, labels=row.names(df))
 
-# nr.employed
-summary(df$nr.employed)
-sum(is.na(df$nr.employed))
-hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
-boxplot(df$nr.employed, labels=row.names(df))
+	# emp.var.rate
+	summary(df$emp.var.rate)
+	hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
+	boxplot(df$emp.var.rate, labels=row.names(df))
 
-# y
-summary(df$y)
+	out.var<-calcQ(df$emp.var.rate);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$emp.var.rate>20);length(aux);df[aux,'emp.var.rate'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"emp.var.rate"]<-NA # los ponemos como NA's
+	boxplot(df$emp.var.rate) #Hacemos boxplot de nuevo
+
+
+
+	# cons.price.idx
+	summary(df$cons.price.idx)
+	hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
+	boxplot(df$cons.price.idx, labels=row.names(df))
+
+	out.var<-calcQ(df$cons.price.idx);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$cons.price.idx>20);length(aux);df[aux,'cons.price.idx'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"cons.price.idx"]<-NA # los ponemos como NA's
+	boxplot(df$cons.price.idx) #Hacemos boxplot de nuevo
+
+
+
+	# cons.conf.idx
+	summary(df$cons.conf.idx)
+	hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
+	boxplot(df$cons.conf.idx, labels=row.names(df))
+
+	out.var<-calcQ(df$cons.conf.idx);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$cons.conf.idx>20);length(aux);df[aux,'cons.conf.idx'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"cons.conf.idx"]<-NA # los ponemos como NA's
+	boxplot(df$cons.conf.idx) #Hacemos boxplot de nuevo
+
+
+
+	# euribor3m
+	summary(df$euribor3m)
+	hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
+	boxplot(df$euribor3m, labels=row.names(df))
+
+	out.var<-calcQ(df$euribor3m);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$euribor3m>20);length(aux);df[aux,'euribor3m'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"euribor3m"]<-NA # los ponemos como NA's
+	boxplot(df$euribor3m) #Hacemos boxplot de nuevo
+
+
+
+	# nr.employed
+	summary(df$nr.employed)
+	hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
+	boxplot(df$nr.employed, labels=row.names(df))
+
+	out.var<-calcQ(df$nr.employed);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$nr.employed>20);length(aux);df[aux,'nr.employed'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"nr.employed"]<-NA # los ponemos como NA's
+	boxplot(df$nr.employed) #Hacemos boxplot de nuevo
+
+
 ```
 
 
