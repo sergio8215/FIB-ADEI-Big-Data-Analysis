@@ -76,9 +76,10 @@ for(i in vars_cat){#Vamos a poner NA's en los unknows
   
   sel<-which(df[,i]=="unknown")
   
-  if(length(sel)>0 && length(sel)<300) cat(i, " -- ", length(sel), "\n")
+  if(length(sel)>0 && length(sel)<300){ cat(i, " -- ", length(sel), "\n")
   df[sel,i]<-NA
   df[,i]<-factor(df[,i])
+  }
 }
 #sel<-which(df$poutcome=="nonexistent")#Hacemos lo mismo con poutcome y sus nonexitent
 #print(length(sel))
@@ -86,12 +87,46 @@ for(i in vars_cat){#Vamos a poner NA's en los unknows
 #df$poutcome<-factor(df$poutcome)
 library(missMDA)
 
-res.input<-imputeMCA(df[,vars_cat],ncp=1)#No funciona
+res.input<-imputeMCA(df[,2:6],ncp=10)#Ya funciona
 summary(res.input$completeObs)
+
+df[,vars_cat]<-res.input$completeObs
+head(df)
+
+#job- imputacion correcta
+summary(df[,vars_cat[1]])
+summary(res.input$completeObs[,1])
+df$job<-res.input$completeObs[,1]
+
+#marital- imputacion correcta
+summary(df[,vars_cat[2]])
+summary(res.input$completeObs[,2])
+df$job<-res.input$completeObs[,2]
+
+#education- imputacion correcta
+summary(df[,vars_cat[3]])
+summary(res.input$completeObs[,3])
+df$job<-res.input$completeObs[,1]
+
+summary(df[,vars_cat[4]])
+summary(res.input$completeObs[,4])
+df$job<-res.input$completeObs[,1]
+
+summary(df[,vars_cat[5]])
+summary(res.input$completeObs[,5])
+df$job<-res.input$completeObs[,1]
+
+summary(df[,vars_cat[6]])
+summary(res.input$completeObs[,6])
+df$job<-res.input$completeObs[,1]
+
+summary(df[,vars_cat[7]])
+summary(res.input$completeObs[,7])
+df$job<-res.input$completeObs[,1]
+
 #no-target+numerica
 
-res.input<-imputeMCA(df[,vars_dis],ncp=2)
-summary(res.input$completeObs)
+
 #######################FI GUILLEM#####################3
 #eliminamos las filas con NA's en las variables target (Duration & Y)
 sel<-which(is.na(df$duration));sel
