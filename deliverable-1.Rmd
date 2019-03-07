@@ -237,7 +237,7 @@ df$f.education[sel] <-2
 sel<-which(df$education %in% c("professional.course","university.degree"))
 df$f.education[sel] <-3
 
-# 3 level - Illiterate
+# 4 level - Illiterate
 sel<-which(df$education %in% c("illiterate"))
 df$f.education[sel] <-4
 

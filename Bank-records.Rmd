@@ -54,7 +54,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, include=FALSE}
 # Load Required Packages: to be increased over the course
 
-requiredPackages <- c("car","knitr","FactoMineR","missMDA","mvoutlier","chemometrics")
+requiredPackages <- c("car","knitr","FactoMineR","missMDA","mvoutlier","chemometrics","AER")
 missingPackages <- requiredPackages[!(requiredPackages %in% installed.packages()[,"Package"])]
 
 if(length(missingPackages)) install.packages(missingPackages)
