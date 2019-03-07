@@ -53,14 +53,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, include=FALSE}
 # Load Required Packages: to be increased over the course
-library(car)  # Manual way, use for Boxplot()
 
 requiredPackages <- c("car","knitr","FactoMineR","missMDA","mvoutlier","chemometrics")
 missingPackages <- requiredPackages[!(requiredPackages %in% installed.packages()[,"Package"])]
 
 if(length(missingPackages)) install.packages(missingPackages)
 lapply(requiredPackages, require, character.only = TRUE)
-install.packages("missMDA",dependencies = TRUE)
 
 ```
 

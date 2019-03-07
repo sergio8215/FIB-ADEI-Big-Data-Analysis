@@ -15,9 +15,9 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 
 ```{r}
 
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
@@ -60,9 +60,9 @@ calcQ <- function(x) {# Some useful functions
   list(souti=s.x[2]-3*iqr, mouti=s.x[2]-1.5*iqr, min=s.x[1], q1=s.x[2], q2=s.x[3], 
        q3=s.x[5], max=s.x[6], mouts=s.x[5]+1.5*iqr, souts=s.x[5]+3*iqr ) }
 out.var<-calcQ(df$duration);out.var
-abline(h=650,col="red",lwd=2) #Fijamos límite soft
-abline(h=979,col="magenta",lwd=2) #Fijamos límite extreme
-aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] #Hechamos un ojo a los 10 valores más extremos
+abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] #Echamos un ojo a los 10 valores más extremos
 df<-df[-aux[1:6],]#decidimos eliminamos los 6 elementos más extremos 
 boxplot(df$duration) #Hacemos boxplot de nuevo
 aux<-which(df$duration<5);length(aux);df[aux,'duration']#Ahora miramos los que son inferiores a 5s (no puede considerarse llamada)
@@ -77,26 +77,28 @@ for(i in vars_cat){
   cat("################ ",i," ##################\n")
   print(summary(df[,i]))
 } #Vemos un resumen de los niveles de cada variable categorica
+
 for(i in vars_cat){#Vamos a poner NA's en los unknows
-  
   sel<-which(df[,i]=="unknown")
-  
-  if(length(sel)>0 && length(sel)<300){ cat(i, " -- ", length(sel), "\n")
-  df[sel,i]<-NA
-  df[,i]<-factor(df[,i])
+  if(length(sel)>0 && length(sel)<300){ #Solo si como máximo la variable tiene 300 unknowns
+    cat(i, " -- ", length(sel), "\n")
+    df[sel,i]<-NA
+    df[,i]<-factor(df[,i])
   }
 }
-#sel<-which(df$poutcome=="nonexistent")#Hacemos lo mismo con poutcome y sus nonexitent
-#print(length(sel))
-#df[sel,'poutcome']<-NA
-#df$poutcome<-factor(df$poutcome)
-library(missMDA)
 
-aux<- df[c(2:10,15)];names(aux) #variables categoricas sin la categoria "default"
-res.input<-imputeMCA(aux,ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias
+aux<-match('default',vars_cat);aux
+aux<-vars_cat[-aux]#variables categoricas sin la categoria "default" porque nos da error al intentar imputarla #preguntar si es por la cantidad de NAs
+res.input<-imputeMCA(df[,aux],ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias
 summary(res.input$completeObs)
 
-head(df)
+for(i in aux){#Contrastamos las imputaciones antes de modificar los datos
+  cat("################ ",i," ##################\n")
+  print(summary(df[,i]))
+  print("--- --- --- ---")
+  print(summary(res.input$completeObs[,i]))
+}
+df[,aux]<-res.input$completeObs#Aceptamos las imputaciones realizadas
 
 # Guardamos los datos en este punto
 #save.image("set-datos-cat-imputados.RData")
