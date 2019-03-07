@@ -89,7 +89,7 @@ for(i in vars_cat){#Vamos a poner NA's en los unknows
 
 aux<-match('default',vars_cat);aux  # preguntar si dejamos el yes=0  o no y preguntar por que no funciona la imputacion
 aux<-vars_cat[-aux]#variables categoricas sin la categoria "default" porque nos da error al intentar imputarla #preguntar si es por la cantidad de NAs
-res.input<-imputeMCA(df[,aux],ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias
+res.input<-imputeMCA(df[,aux],ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias(preferiblemente recategorizar despues de la imputación)
 summary(res.input$completeObs)
 
 for(i in aux){#Contrastamos las imputaciones antes de modificar los datos
