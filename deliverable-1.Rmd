@@ -15,9 +15,9 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 
 ```{r}
 
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
@@ -87,7 +87,7 @@ for(i in vars_cat){#Vamos a poner NA's en los unknows
   }
 }
 
-aux<-match('default',vars_cat);aux
+aux<-match('default',vars_cat);aux  # preguntar si dejamos el yes=0  o no y preguntar por que no funciona la imputacion
 aux<-vars_cat[-aux]#variables categoricas sin la categoria "default" porque nos da error al intentar imputarla #preguntar si es por la cantidad de NAs
 res.input<-imputeMCA(df[,aux],ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias
 summary(res.input$completeObs)
@@ -98,64 +98,12 @@ for(i in aux){#Contrastamos las imputaciones antes de modificar los datos
   print("--- --- --- ---")
   print(summary(res.input$completeObs[,i]))
 }
+
 df[,aux]<-res.input$completeObs#Aceptamos las imputaciones realizadas
 
 # Guardamos los datos en este punto
 #save.image("set-datos-cat-imputados.RData")
 load("set-datos-cat-imputados.RData", envir = parent.frame(), verbose = FALSE)
-
-# NO IMPRIMIR EN EL DOCUMENTO ---------------------------
-
-#job- imputacion correcta
-summary(df[,vars_cat[1]])
-summary(res.input$completeObs[,1])
-df[,vars_cat[1]]<-res.input$completeObs[,1]
-
-#marital- imputacion correcta
-summary(df[,vars_cat[2]])
-summary(res.input$completeObs[,2])
-df[,vars_cat[2]]<-res.input$completeObs[,2]
-
-#education- imputacion correcta
-summary(df[,vars_cat[3]])
-summary(res.input$completeObs[,3])
-df[,vars_cat[3]]<-res.input$completeObs[,3]
-
-#default- 
-summary(df[,vars_cat[4]])
-summary(res.input$completeObs[,4])
-#df[,vars_cat[4]]<-res.input$completeObs[,4]   # preguntar si dejamos el yes=0  o no y preguntar por que no funciona la imputacion
-
-#housing
-summary(df[,vars_cat[5]])
-summary(res.input$completeObs[,5])
-df[,vars_cat[5]]<-res.input$completeObs[,5]
-
-#loan
-summary(df[,vars_cat[6]])
-summary(res.input$completeObs[,6])
-df[,vars_cat[6]]<-res.input$completeObs[,6]
-
-#contact
-summary(df[,vars_cat[7]])
-summary(res.input$completeObs[,7])
-df[,vars_cat[7]]<-res.input$completeObs[,7]
-
-#month
-summary(df[,vars_cat[8]])
-summary(res.input$completeObs[,8])
-df[,vars_cat[8]]<-res.input$completeObs[,8]
-
-#day of week
-summary(df[,vars_cat[9]])
-summary(res.input$completeObs[,9])
-df[,vars_cat[9]]<-res.input$completeObs[,9]
-
-#poutcome
-summary(df[,vars_cat[10]])
-summary(res.input$completeObs[,10])
-df[,vars_cat[10]]<-res.input$completeObs[,10]
-
 
 # Refactorización (Agrupar subcategorias en menos categorias)
 
@@ -247,11 +195,10 @@ table(df$f.education);summary(df$f.education)
 df$f.education<-factor(df$f.education,levels=1:4,labels=c("Basic","High School","Professional","Illiterate"))
 
 
-
-# FIN DE NO IMPRIMIR EN EL DOCUMENTO ---------------------------
-
 #save.image("set-datos-cat-imputados.RData")
 load("set-datos-cat-imputados.RData", envir = parent.frame(), verbose = FALSE)
+
+
 
 
 #no-target+numerica
