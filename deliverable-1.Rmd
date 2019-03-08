@@ -434,6 +434,12 @@ load("set-datos-cat-imputados.RData", envir = parent.frame(), verbose = FALSE)
 	df[aux,"nr.employed"]<-NA # los ponemos como NA's
 	boxplot(df$nr.employed) #Hacemos boxplot de nuevo
 
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='nr.employed','missings']<-sum(is.na(df[,"nr.employed"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='nr.employed','errors'] <-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='nr.employed','outliers']<-0
 
 ```
 
