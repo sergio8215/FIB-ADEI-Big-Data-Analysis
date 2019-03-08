@@ -11,22 +11,55 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # Loading data
-
+Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay la muestra de 5000 individuos que se usará para el análisis. Podemos comprobar que la dimensión de los datos es correcto, 5000 filas y 21 columnas.
 
 ```{r}
 
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/Proyecto/")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis-master")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+
 
 load("set-datos.RData", envir = parent.frame(), verbose = FALSE)
 
 #Comprobar el tamaño de la muestra
-nrow(df)
-ncol(df)
 dim(df)
 ```
+# Data quality report
+## Per variable:
+```{r}
+
+dqr <- data.frame(	variable=character(),
+					missings=integer(),
+					errors=integer(),
+					outliers=integer())
+
+vars<-names(df)
+dqr[length(vars),]<-NA
+dqr$variable <-vars
+dqr
+
+# Number of missing values
+# Number of errors (including inconsistencies)
+# Number of outliers
+# Rank variables according the sum of missing values (and errors).
+
+```
+
 
 # Exploratory Data Analysis
+
+# crear lista de cuantitativos y cualitativos
+
+```{r}
+#Separamos variables target/no-target numéricas/categóricas (observamos un individuo cualquiera)
+
+df[1,]
+vars_target<-c("duration","y");vars_target
+vars_cat<-c("job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome");vars_cat
+vars_num<-c("age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed");vars_num
+```
+
 
 ```{r}
 # Graphics
@@ -34,219 +67,382 @@ names(df)
 # Overview of data frame 
 summary(df)
 
-# List with names of target variables
-vars_target<-names(df)[c(11,21)];vars_target
+#Analizamos variables según si son cat/num o target/no-target (obtenemos 4 clasificaciones)
 
-summary(df[,vars_target])
-hist(df$duration,100)
-boxplot(df$duration)
+#target+categorica (miramos qué nivles tiene)
 
-# Some useful functions
-calcQ <- function(x) {
+levels(df$y) #solo hay yes/no no hay que hacer nada
+
+# Para el data analisis guardamos los missings
+dqr[dqr$variable=='y','missings']<-0
+# Para el data analisis guardamos los outliers
+dqr[dqr$variable=='y','errors']<-0
+# Para el data analisis guardamos los errores
+dqr[dqr$variable=='y','outliers']<-0
+
+
+#target+numerica (miramos qué valores toma)
+
+# Para el data analisis guardamos los missings
+dqr[dqr$variable=="duration","missings"]<-sum(is.na(df[,"duration"]))
+
+summary(df$duration)#Vemos que hay svalores muy pequeños, incluso 0, tambien de muy grandes.
+hist(df$duration,100) #Miramos distribución
+boxplot(df$duration) #Hacemos boxplot para ver outliers
+calcQ <- function(x) {# Some useful functions
   s.x <- summary(x)
   iqr<-s.x[5]-s.x[2]
   list(souti=s.x[2]-3*iqr, mouti=s.x[2]-1.5*iqr, min=s.x[1], q1=s.x[2], q2=s.x[3], 
        q3=s.x[5], max=s.x[6], mouts=s.x[5]+1.5*iqr, souts=s.x[5]+3*iqr ) }
-out.var<-calcQ(df$duration)
-abline(h=611,col="red",lwd=2)
-abline(h=917,col="magenta",lwd=2)
+out.var<-calcQ(df$duration);out.var
+abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] #Echamos un ojo a los 10 valores más extremos
+df<-df[-aux[1:6],]#decidimos eliminamos los 6 elementos más extremos 
+boxplot(df$duration) #Hacemos boxplot de nuevo
 
-# Target numeric amb outliers greus: suprimir obs
+# Para el data analisis guardamos los outliers
+dqr[dqr$variable=="duration","outliers"]<-6
 
-#eliminamos las filas con NA's en las variables target (Duration & Y)
-sel<-which(is.na(df$duration));sel
-# si sel es igual a cero, no hacemos esta linea
-# df<-df[-sel,]
+aux<-which(df$duration<5);length(aux);df[aux,'duration'] # Ahora miramos los que son inferiores a 5s (no puede considerarse llamada)
+df<-df[-aux,] # decidimos eliminarlos todos
 
-sel<-which(is.na(df$y));sel
-# si sel es igual a cero, no hacemos esta linea
-# df<-df[-sel,]
-
-# Missing values de las variables no target, y hacerle imputación
-miss_row<-rowSums(is.na(df))
-miss_col<-colSums(is.na(df))
-miss_col
-
-# age no consideramos ningún outlier
-# job
-sel<-which(df$job=="unknown");sel
-df$job[sel]<-NA
-summary(df$job)
-df$job<-factor(df$job)
-
-# marital
-sel<-which(df$marital=="unknown");sel
-df$marital[sel]<-NA
-summary(df$marital)
-df$marital<-factor(df$marital)
-
-# education
-sel<-which(df$education=="unknown");sel
-df$education[sel]<-NA
-summary(df$education)
-df$education<-factor(df$education)
+# Para el data analisis guardamos los errores
+dqr[dqr$variable=="duration","errors"]<-length(aux)
 
 
-# default (Hay demasiados unkown, vale la pena imputar? ) 
-sel<-which(df$default=="unknown");sel
-df$default[sel]<-NA
-summary(df$default)
-df$default<-factor(df$default)
 
-# housing
-sel<-which(df$housing=="unknown");sel
-df$housing[sel]<-NA
-summary(df$housing)
-df$housing<-factor(df$housing)
+#no-target+categorica
 
-# loan
-sel<-which(df$loan=="unknown");sel
-df$loan[sel]<-NA
-summary(df$loan)
-df$loan<-factor(df$loan)
-
-# contact (No hay uknows)
-
-# month (No hay uknows)
-
-# day_of_week (No hay uknows)
-
-# campaign (No hay uknows)
-
-# pdays (No hay uknows pero estan los 999)
-
-# previous (No hay uknows)
-
-# poutcome (No hay uknows)
-
-# emp.var.rate (No hay uknows)
-
-# cons.price.idx (No hay uknows)
-
-# cons.conf.idx (No hay uknows)
-
-# euribor3m (No hay uknows)
-
-# nr.employed (No hay uknows)
-
-# Eliminamos los outliers que pueden ser NA's
-
-sel<-which(df$duration>3600);length(sel);sel
-df<-df[-sel,]
-
-# Outliers univariants podeu detectar-los i marcar-los com NA
+for(i in vars_cat){
+  cat("################ ",i," ##################\n")
+  print(summary(df[,i]))
+} #Vemos un resumen de los niveles de cada variable categorica
 
 
-# Errors: set to NA. Ex: Duration<=0
-ll<-which(df$duration<=0);ll
-df$duration[ll]<-NA
+for(i in vars_cat){  # Vamos a poner NA's en los unknows
+  sel<-which(df[,i]=="unknown")
+  if(length(sel)>0 && length(sel)<300){ # Solo si como máximo la variable tiene 300 unknowns (Para filtrar a default)
+    cat(i, " -- ", length(sel), "\n")
+    df[sel,i]<-NA
+    df[,i]<-factor(df[,i])
+  }
+}
+
+# Para el data analisis guardamos los missings de las variables categoricas
+for(i in vars_cat){ 
+	dqr[dqr$variable==i,"missings"]<-sum(is.na(df[,i]))
+	dqr[dqr$variable==i,"outliers"]<-0
+	dqr[dqr$variable==i,"errors"]<-0
+}
+
+aux<-match('default',vars_cat);aux 
+aux<-vars_cat[-aux] # variables categoricas sin la categoria "default" porque nos da error al intentar imputarla #preguntar si es por la cantidad de NAs
+res.input<-imputeMCA(df[,aux],ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias(preferiblemente recategorizar despues de la imputación)
+summary(res.input$completeObs)
+
+for(i in aux){ # Contrastamos las imputaciones antes de modificar los datos
+  cat("################ ",i," ##################\n")
+  print(summary(df[,i]))
+  print("--- --- --- ---")
+  print(summary(res.input$completeObs[,i]))
+}
+
+df[,aux]<-res.input$completeObs#Aceptamos las imputaciones realizadas
+
+# Guardamos los datos en este punto
+#save.image("set-datos-cat-imputados.RData")
+load("set-datos-cat-imputados.RData", envir = parent.frame(), verbose = FALSE)
+
+# Refactorización (Agrupar subcategorias en menos categorias)
+
+for(i in vars_cat){
+  cat("################ ",i," ##################\n")
+  print(summary(df[,i]))
+}
+
+# preguntar como criterio para las agrupaciones categoricas y en numericas
+
+#Job
+
+table(df$job)
+#     admin.   blue-collar  entrepreneur     housemaid    management       retired self-employed     
+#         1296          1156           189           119           351           222           166   
+#    services       student    technician  unemployed 
+#         451           109           817      114 
+# Define new factor categories: 1-Admin 2-Bussines 3-Not working 4-Serv-Tech 5-Blue-Collar
+
+df$f.job <- 5
+# 1 level - Admin 
+sel<-which(df$job %in% c("admin."))
+df$f.job[sel] <-1
+
+# 2 level - Bussines 
+sel<-which(df$job %in% c("entrepreneur", "management", "self-employed"))
+df$f.job[sel] <-2
+
+# 3 level - Not working
+sel<-which(df$job %in% c("housemaid", "retired","unemployed","student"))
+df$f.job[sel] <-3
+
+# 4 level - Serv-Tech
+sel<-which(df$job %in% c("services","technician"))
+df$f.job[sel] <-4
+
+# 5 level - Blue-Collar
+sel<-which(df$job %in% c("blue-collar"))
+df$f.job[sel] <-5
+
+table(df$f.job);summary(df$f.job)
+df$f.job<-factor(df$f.job,levels=1:5,labels=c("Admin", "Bussines", "Not working", "Serv-Tech", "Blue-Collar"))
+
+
+
+# Months to groups
+
+table(df$month)
+# apr  aug  dec  jul  jun  mar  may  nov  oct  sep 
+# 321  764   18  865  616   63 1680  513   80   70 
+
+# Define new factor categories: 1- Spring 2-Summer 3-Resta
+df$f.season <- 3
+# 1 level - mar-may 
+sel<-which(df$month %in% c("mar","apr","may"))
+df$f.season[sel] <-1
+
+# 2 level - jun-jul 
+sel<-which(df$month %in% c("jun","jul"))
+df$f.season[sel] <-2
+
+# 3 level - aug-feb
+sel<-which(df$month %in% c("dec","aug","sep","oct","nov"))
+df$f.season[sel] <-3
+
+table(df$f.season);summary(df$f.season)
+df$f.season<-factor(df$f.season,levels=1:3,labels=c("Mar-May","Jun-Jul","Aug-Dec"))
+
+#Education
+
+# education a Season
+
+table(df$education)
+#	basic.4y            basic.6y            basic.9y         high.school          illiterate professional.course   university.degree 
+#	  515                 271                 810                1196                   1                 633                1564
+
+# Define new factor categories: 1-Basic 2-High School 3-Professional
+df$f.education <- 3
+# 1 level - Basic 
+sel<-which(df$education %in% c("illiterate","basic.4y","basic.6y","basic.9y"))
+df$f.education[sel] <-1
+
+# 2 level - Higb School 
+sel<-which(df$education %in% c("high.school"))
+df$f.education[sel] <-2
+
+# 3 level - Professional
+sel<-which(df$education %in% c("professional.course","university.degree"))
+df$f.education[sel] <-3
+
+
+
+table(df$f.education);summary(df$f.education)
+df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School","Professional"))
+
+
+#save.image("set-datos-cat-imputados.RData")
+load("set-datos-cat-imputados.RData", envir = parent.frame(), verbose = FALSE)
+
+
+
+
+#no-target+numerica
+
 
 ```
 
 # Revisión de cada variable con summary y boxplots
 
 ```{r}
+	# age - Consideramos que no presenta ningún outlier  # preguntar si esta bien
+  
+  # Para el data analisis guardamos los missings
+  dqr[dqr$variable=='age','missings']<-0
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='age','errors']<-0
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='age','outliers']<-0
+  
 
-# age
-summary(df$age)
-hist(df$age,col="cyan",main="age - Histogram")
-boxplot(df$age, labels=row.names(df))
 
-# job
-summary(df$job)
+	# campaign - Consideramos que en los 10 meses que dura la campaña, contactar a un cliente como maximo cada 15 días puede ser posible
+	summary(df$campaign)
+	hist(df$campaign,col="cyan",main="campaign - Histogram")
+	boxplot(df$campaign, labels=row.names(df))
 
-# marital
-summary(df$marital)
+	out.var<-calcQ(df$campaign);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$campaign>20);length(aux);df[aux,'campaign'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"campaign"]<-NA # los ponemos como NA's
+	boxplot(df$campaign) #Hacemos boxplot de nuevo
+	
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='campaing','missings']<-sum(is.na(df[,"campaing"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='campaing','errors']<-20
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='campaing','outliers']<-0
 
-# education
-summary(df$education)
 
-# default
-summary(df$default)
 
-# housing
-summary(df$housing)
+	# pdays - preguntar creemos que no hay outliers, solo se han contactado a 175 personas en la campaña previa
+	summary(df$pdays)
+	aux2<-which(df$pdays<999);summary(df$pdays[aux2])
+	aux<-df$pdays[aux2]
+	hist(aux,col="cyan",main="pdays - Histogram")
+	boxplot(aux, labels=row.names(df))
 
-# loan
-summary(df$loan)
+	out.var<-calcQ(aux);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which( (df$pdays<999 & df$pdays>20) | (df$pdays<0));length(aux);df[aux,'pdays'] #Hechamos un ojo a los 10 valores más extremos
+	
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='pdays','missings']<-sum(is.na(df[,"pdays"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='pdays','errors']<-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='pdays','outliers']<-0
 
-# contact
-summary(df$contact)
 
-# month
-summary(df$month)
 
-# day_of_week
-summary(df$day_of_week)
+	# previous - Vemos que de los outliers del boxplot 
+  
+  # Para el data analisis guardamos los missings
+  dqr[dqr$variable=='previous','missings']<-sum(is.na(df[,"previous"]))
+  
+	summary(df$previous)
+	hist(df$previous,col="cyan",main="previous - Histogram")
+	boxplot(df$previous, labels=row.names(df)) # queremos ver el boxplot de solo las valores mayores que 0
 
-# duration
-summary(df$duration)
-hist(df$duration,col="cyan",main="duration - Histogram")
-boxplot(df$duration, labels=row.names(df))
+	out.var<-calcQ(df$previous);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	
+	aux<-which(df$previous>0) 
+	aux2<-df[aux,'previous']
+	boxplot(aux2, labels=row.names(df)) # queremos ver el boxplot de solo las valores mayores que 0
 
-# campaign
-summary(df$campaign)
-sum(is.na(df$campaign))
-hist(df$campaign,col="cyan",main="campaign - Histogram")
-boxplot(df$campaign, labels=row.names(df))
+	out.var<-calcQ(aux2);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$previous>2);length(aux);df[aux,'previous']
+	df[aux,"previous"]<-NA # los ponemos como NA's
+	boxplot(df$previous) #Hacemos boxplot de nuevo
+	
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='previous','errors']<-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='previous','outliers']<-length(aux)
 
-# pdays
-summary(df$pdays)
-sum(is.na(df$pdays))
-hist(df$pdays,col="cyan",main="pdays - Histogram")
-boxplot(df$pdays, labels=row.names(df))
 
-# previous
-summary(df$previous)
-sum(is.na(df$previous))
-hist(df$previous,col="cyan",main="previous - Histogram")
-boxplot(df$previous, labels=row.names(df))
+	# emp.var.rate
+	summary(df$emp.var.rate)
+	hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
+	boxplot(df$emp.var.rate, labels=row.names(df))
 
-# poutcome
-summary(df$poutcome)
+	out.var<-calcQ(df$emp.var.rate);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='emp.var.rate','missings']<-sum(is.na(df[,"emp.var.rate"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='emp.var.rate','errors']<-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='emp.var.rate','outliers']<-0
 
-# emp.var.rate
-summary(df$emp.var.rate)
-sum(is.na(df$emp.var.rate))
-hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
-boxplot(df$emp.var.rate, labels=row.names(df))
+  
+	# cons.price.idx
+	summary(df$cons.price.idx)
+	hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
+	boxplot(df$cons.price.idx, labels=row.names(df))
 
-# cons.price.idx
-summary(df$cons.price.idx)
-sum(is.na(df$cons.price.idx))
-hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
-boxplot(df$cons.price.idx, labels=row.names(df))
+	out.var<-calcQ(df$cons.price.idx);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$cons.price.idx>20);length(aux);df[aux,'cons.price.idx'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"cons.price.idx"]<-NA # los ponemos como NA's
+	boxplot(df$cons.price.idx) #Hacemos boxplot de nuevo
+	
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='cons.price.idx','missings']<-sum(is.na(df[,"cons.price.idx"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='cons.price.idx','errors']<-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='cons.price.idx','outliers']<-0
 
-# cons.conf.idx
-summary(df$cons.conf.idx)
-sum(is.na(df$cons.conf.idx))
-hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
-boxplot(df$cons.conf.idx, labels=row.names(df))
 
-# euribor3m
-summary(df$euribor3m)
-sum(is.na(df$euribor3m))
-hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
-boxplot(df$euribor3m, labels=row.names(df))
+	# cons.conf.idx
+	summary(df$cons.conf.idx)
+	hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
+	boxplot(df$cons.conf.idx, labels=row.names(df))
 
-# nr.employed
-summary(df$nr.employed)
-sum(is.na(df$nr.employed))
-hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
-boxplot(df$nr.employed, labels=row.names(df))
+	out.var<-calcQ(df$cons.conf.idx);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$cons.conf.idx>(-30));length(aux);df[aux,'cons.conf.idx'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"cons.conf.idx"]<-NA # los ponemos como NA's
+	boxplot(df$cons.conf.idx) #Hacemos boxplot de nuevo
 
-# y
-summary(df$y)
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='cons.conf.idx','missings']<-sum(is.na(df[,"cons.conf.idx"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='cons.conf.idx','errors']<-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='cons.conf.idx','outliers']<-0
+
+
+	# euribor3m
+	summary(df$euribor3m)
+	hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
+	boxplot(df$euribor3m, labels=row.names(df))
+
+	out.var<-calcQ(df$euribor3m);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$euribor3m>20);length(aux);df[aux,'euribor3m'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"euribor3m"]<-NA # los ponemos como NA's
+	boxplot(df$euribor3m) #Hacemos boxplot de nuevo
+
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='euribor3m','missings']<-sum(is.na(df[,"euribor3m"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='euribor3m','errors']<-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='euribor3m','outliers']<-0
+
+	# nr.employed
+	summary(df$nr.employed)
+	hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
+	boxplot(df$nr.employed, labels=row.names(df))
+
+	out.var<-calcQ(df$nr.employed);out.var
+	abline(h=out.var[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=out.var[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$nr.employed>20);length(aux);df[aux,'nr.employed'] #Hechamos un ojo a los 10 valores más extremos
+	df[aux,"nr.employed"]<-NA # los ponemos como NA's
+	boxplot(df$nr.employed) #Hacemos boxplot de nuevo
+
+	# Para el data analisis guardamos los missings
+  dqr[dqr$variable=='nr.employed','missings']<-sum(is.na(df[,"nr.employed"]))
+  # Para el data analisis guardamos los outliers
+  dqr[dqr$variable=='nr.employed','errors'] <-0 # no se ve ningun numero negativo o algo raro
+  # Para el data analisis guardamos los errores
+  dqr[dqr$variable=='nr.employed','outliers']<-0
+
 ```
 
-# crear lista de cuantitativos y cualitativos
-
-```{r}
-listaCualitativo<-list(df$job, df$marital, df$education, df$default, df$housing, df$loan, df$contact, df$month, df$day_of_week, df$poutcome, df$y)
-names(listaCualitativo)<-c("job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome", "y")
-listaCuantitativo<-list(df$age, df$duration, df$campaign, df$pdays, df$previous, df$emp.var.rate, df$cons.price.idx, df$cons.conf.idx, df$euribor3m, df$nr.employed)
-names(listaCuantitativo)<-c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")
-```
 
 # missing values de las variables target
 
