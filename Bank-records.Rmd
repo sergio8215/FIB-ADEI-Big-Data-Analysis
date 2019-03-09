@@ -67,7 +67,7 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 ```{r}
 setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis-master")
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 # Data file alread
 df<-read.table('bank-additional-full.csv',header=TRUE,sep=";")
 # Select your 5000 register sample (random sample)
@@ -77,3 +77,4 @@ llista<-sort(llista)
 #llista
 df<-df[llista,]
 save.image("set-datos.RData")
+```
