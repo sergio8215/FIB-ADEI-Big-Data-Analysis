@@ -287,6 +287,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$campaign);
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
+	aux<-which(df$campaign==0);aux #Si se incluye el último contacto, este valor no puede ser 0
 	aux<-which(df$campaign>20);length(aux);df[aux,'campaign'] #Hechamos un ojo a los outliers mayores de 20
 	df[aux,"campaign"]<-NA # los ponemos como NA's
 	boxplot(df$campaign) #Hacemos boxplot de nuevo
@@ -300,7 +301,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   # Para los individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
 
-#Para pdays/previous/outcome podemos detectar errores si encontramos algún valor 999 ó 0 ó nonexistent respectivamente que no esté en la tripleta de esos tres valores
+#Para pdays/previous/outcome podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999
 
   aux<-which(df$pdays==999)
   aux2<-which(df$previous==0)
@@ -344,7 +345,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   dqr[dqr$variable=='previous','missings']<-length(aux)
   dqri[aux,'missings']<-dqri[aux,'missings']+1
   
-	summary(df$previous)
+	summary(df$previous)#Vemos que gran parte de los valores es 0
 	hist(df$previous,col="cyan",main="previous - Histogram")
 	boxplot(df$previous, labels=row.names(df))
 
@@ -379,7 +380,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
       aux2<-unique(df[which(df$month==j),i])
       cat(j,": ",aux2,"\n")
     }
-  }#Aparecen muchas discordancias #preguntar si es necesario cosiderar errores
+  }#Aparecen muchas discordancias #preguntar si es necesario cosiderar errores para estas variables pues o bien son índices locales que varían según la zona o bien son errores en introducir el mes o el valor
   
 
 	# emp.var.rate
@@ -409,9 +410,9 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$cons.price.idx)
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$cons.price.idx>20);length(aux);df[aux,'cons.price.idx'] #Hechamos un ojo a los 10 valores más extremos
+	#aux<-which(df$cons.price.idx>20);length(aux);df[aux,'cons.price.idx'] #Hechamos un ojo a los 10 valores más extremos
 	#df[aux,"cons.price.idx"]<-NA # los ponemos como NA's
-	boxplot(df$cons.price.idx) #Hacemos boxplot de nuevo
+	#boxplot(df$cons.price.idx) #Hacemos boxplot de nuevo
 	
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='cons.price.idx','missings']<-sum(is.na(df[,"cons.price.idx"]))
@@ -427,12 +428,12 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
 	boxplot(df$cons.conf.idx, labels=row.names(df))
 
-	aux<-calcQ(df$cons.conf.idx);aux
+	aux<-calcQ(df$cons.conf.idx)
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$cons.conf.idx>(-30));length(aux);df[aux,'cons.conf.idx'] #Hechamos un ojo a los 10 valores más extremos
+	#aux<-which(df$cons.conf.idx>(-30));length(aux);df[aux,'cons.conf.idx'] #Hechamos un ojo a los 10 valores más extremos
 	#df[aux,"cons.conf.idx"]<-NA # los ponemos como NA's
-	boxplot(df$cons.conf.idx) #Hacemos boxplot de nuevo
+	#boxplot(df$cons.conf.idx) #Hacemos boxplot de nuevo
 
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='cons.conf.idx','missings']<-sum(is.na(df[,"cons.conf.idx"]))
@@ -443,17 +444,16 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 
 
 	# euribor3m
-	levels(factor(df$euribor3m))
-  summary(df$euribor3m)
+	summary(df$euribor3m)
 	hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
 	boxplot(df$euribor3m, labels=row.names(df))
 
-	aux<-calcQ(df$euribor3m);aux
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
+	#aux<-calcQ(df$euribor3m);aux
+	#abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
+	#abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
 	#aux<-which(df$euribor3m>20);length(aux);df[aux,'euribor3m'] #Hechamos un ojo a los 10 valores más extremos
 	#df[aux,"euribor3m"]<-NA # los ponemos como NA's
-	boxplot(df$euribor3m) #Hacemos boxplot de nuevo
+	#boxplot(df$euribor3m) #Hacemos boxplot de nuevo
 
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='euribor3m','missings']<-sum(is.na(df[,"euribor3m"]))
@@ -468,12 +468,12 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
 	boxplot(df$nr.employed, labels=row.names(df))
 
-	aux<-calcQ(df$nr.employed);aux
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$nr.employed>20);length(aux);df[aux,'nr.employed'] #Hechamos un ojo a los 10 valores más extremos
+	#aux<-calcQ(df$nr.employed);aux
+	#abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
+	#abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
+	#aux<-which(df$nr.employed>20);length(aux);df[aux,'nr.employed'] #Hechamos un ojo a los 10 valores más extremos
 	#df[aux,"nr.employed"]<-NA # los ponemos como NA's
-	boxplot(df$nr.employed) #Hacemos boxplot de nuevo
+	#boxplot(df$nr.employed) #Hacemos boxplot de nuevo
 
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='nr.employed','missings']<-sum(is.na(df[,"nr.employed"]))
@@ -481,7 +481,22 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   dqr[dqr$variable=='nr.employed','errors'] <-0 # no se ve ningun numero negativo o algo raro
   # Para el data analisis guardamos los errores
   dqr[dqr$variable=='nr.employed','outliers']<-0
-
+  
+  #Imputacion de variables numericas
+  summary(df[,vars_num])
+  
+  #Provisional para pruebas--------------- BORRAR
+  #save.image("pro")
+  #rm(list=ls())
+  #load("pro")
+  #--------------------------------------- FIN BORRAR
+  
+  aux<-c('previous','pdays','campaign') #PREGUNTA Para imputar estas variables con PCA resultan floats. ¿Alternativa pasándolo a factores??
+  for(i in aux) df[,i]<-factor(df[,i])
+  aux2<-imputeMCA(df[,aux],ncp=10)
+  summary(aux2$completeObs)
+  df[,aux]<-aux2$completeObs
+  #df[,vars_num]<-aux$completeObs
 # Guardamos los datos en este punto
 #save.image("data-step-4.RData")
 
@@ -495,34 +510,71 @@ rm(list=ls())#Limpiamos el workspace
 load("data-step-4.RData", envir = parent.frame(), verbose = FALSE)
 
 # Para Age
-qulist<-quantile(df$age,seq(0,1,0.25),na.rm=TRUE)
-
-varaux<-factor(cut(df$age,breaks=qulist,include.lowest=T))
-table(varaux)
-tapply(df$age,varaux,median)
-varaux<-factor(cut(df$age,breaks=c(18,30,40,50,92),include.lowest=T))
-table(varaux)
-tapply(df$age,varaux,median)
-
-df$f.age<-factor(cut(df$age,breaks=c(18,30,40,50,92),include.lowest=T))
-
+aux<-quantile(df$age,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
+aux<-factor(cut(df$age,breaks=aux,include.lowest=T))
+table(aux)
+tapply(df$age,aux,median)
+aux2<-c(18,30,40,50,92)#Niveles "naturales"
+aux<-factor(cut(df$age,breaks=aux2,include.lowest=T))
+table(aux)
+tapply(df$age,aux,median)
+df$f.age<-factor(cut(df$age,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
+levels(df$f.age)<-paste0("f.age-",levels(df$f.age))#Hacemos las etiquetas más informativas
 summary(df$f.age)
-levels(df$f.age)<-paste0("f.age-",levels(df$f.age))
 
 # Para duration
-qulist<-quantile(df$duration,seq(0,1,0.25),na.rm=TRUE)
+aux<-quantile(df$duration,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
+aux<-factor(cut(df$duration,breaks=aux,include.lowest=T))
+table(aux)
+tapply(df$duration,aux,median)
+aux2<-c(5,120,180,300,2100)#Niveles "naturales"
+aux<-factor(cut(df$duration,breaks=aux2,include.lowest=T))
+table(aux)
+tapply(df$duration,aux,median)
+df$f.duration<-factor(cut(df$duration,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
+levels(df$f.duration)<-paste0("f.duration-",levels(df$f.duration))#Hacemos las etiquetas más informativas
+summary(df$f.duration)
 
-varaux<-factor(cut(df$duration,breaks=qulist,include.lowest=T))
-table(varaux)
-tapply(df$duration,varaux,median)
-varaux<-factor(cut(df$duration,breaks=c(18,30,40,50,92),include.lowest=T))
-table(varaux)
-tapply(df$duration,varaux,median)
+# Para campaign
+#aux<-quantile(df$campaign,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
+aux<-levels(factor(df$campaign))#En este caso no funcionan los niveles por quartiles. Miramos todos los niveles
+aux<-factor(cut(df$campaign,breaks=aux,include.lowest=T))
+table(aux)
+tapply(df$campaign,aux,median)
+aux2<-c(0,1,2,20)#Niveles "naturales"
+aux<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))
+table(aux)
+#tapply(df$campaign,aux,median)#no tiene sentido ver la mediana en valores tan pequeños
+df$f.campaign<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
+levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))#Hacemos las etiquetas más informativas
+summary(df$f.campaign)
 
-df$f.duration<-factor(cut(df$age,breaks=c(18,30,40,50,92),include.lowest=T))
+# Para pdays
+aux<-quantile(df$pdays,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
+aux<-factor(cut(df$pdays,breaks=aux,include.lowest=T))
+table(aux)
+tapply(df$pdays,aux,median)
+aux2<-c(5,120,180,300,2100)#Niveles "naturales"
+aux<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))
+table(aux)
+tapply(df$pdays,aux,median)
+df$f.pdays<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
+levels(df$f.pdays)<-paste0("f.pdays-",levels(df$f.pdays))#Hacemos las etiquetas más informativas
+summary(df$f.pdays)
 
-summary(df$f.age)
-levels(df$f.age)<-paste0("f.age-",levels(df$f.age))
+# Para previous
+aux<-quantile(df$previous,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
+aux<-factor(cut(df$previous,breaks=aux,include.lowest=T))
+table(aux)
+tapply(df$previous,aux,median)
+aux2<-c(5,120,180,300,2100)#Niveles "naturales"
+aux<-factor(cut(df$previous,breaks=aux2,include.lowest=T))
+table(aux)
+tapply(df$previous,aux,median)
+df$f.previous<-factor(cut(df$previous,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
+levels(df$f.previous)<-paste0("f.previous-",levels(df$f.previous))#Hacemos las etiquetas más informativas
+summary(df$f.previous)
+
 
 # Guardamos los datos en este punto
 #save.image("data-step-5.RData")
