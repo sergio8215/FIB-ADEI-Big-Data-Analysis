@@ -400,7 +400,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   
 
 	# emp.var.rate
-  levels(factor(df$emp.var.rate))
+  length(levels(factor(df$emp.var.rate)))#Comprobamos si solamente hay 10 valores distintos
 	summary(df$emp.var.rate)
 	hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
 	boxplot(df$emp.var.rate, labels=row.names(df))
@@ -418,7 +418,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 
   
 	# cons.price.idx
-  levels(factor(df$cons.price.idx))
+  lenglevels(factor(df$cons.price.idx))
 	summary(df$cons.price.idx)
 	hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
 	boxplot(df$cons.price.idx, labels=row.names(df))
