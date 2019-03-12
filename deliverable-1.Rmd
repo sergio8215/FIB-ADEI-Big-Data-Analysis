@@ -314,6 +314,8 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   # Para los individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
 
+# Verificamos si hay algun error o outlier en pdays  
+
 #Para pdays/previous/outcome creemos que estan relacionadas, por lo que podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999
 
   rel_pdays<-which(df$pdays==999)
@@ -327,7 +329,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   
   
   #Vemos que hay pdays=999 que tienen previous>0 y poutcome!='nonexistent'
-  summary(df[setdiff(aux,aux2),c('previous','poutcome')])#Miramos el perfil de esos individuos
+  summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')])#Miramos el perfil de esos individuos
   #Les asignamos NA como missing values, pues parece que hayan tenido campaña previa
   #df[setdiff(aux,aux2),'pdays']<-NA
   #guardamos los missingsindividuales
