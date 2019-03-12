@@ -314,6 +314,8 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   # Para los individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
 
+# Verificamos si hay algun error o outlier en pdays  
+
 #Para pdays/previous/outcome creemos que estan relacionadas, por lo que podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999
 
   rel_pdays<-which(df$pdays==999)
@@ -327,7 +329,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   
   
   #Vemos que hay pdays=999 que tienen previous>0 y poutcome!='nonexistent'
-  summary(df[setdiff(aux,aux2),c('previous','poutcome')])#Miramos el perfil de esos individuos
+  summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')])#Miramos el perfil de esos individuos
   #Les asignamos NA como missing values, pues parece que hayan tenido campaña previa
   #df[setdiff(aux,aux2),'pdays']<-NA
   #guardamos los missingsindividuales
@@ -376,7 +378,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux3<-calcQ(aux2)
 	abline(h=aux3[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux3[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$previous>2);length(aux);df[aux,'previous']
+	aux<-which(df$previous>3);length(aux);df[aux,'previous'] # En vista de los limites de los outliers leves y graves que coinciden en uno, hemos decidio eliminar los valores mayores a 3, los cuales son solo 9.
 	df[aux,"previous"]<-NA # los ponemos como NA's
 	boxplot(df$previous) #Hacemos boxplot de nuevo
 	
@@ -426,9 +428,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$cons.price.idx)
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	#aux<-which(df$cons.price.idx>20);length(aux);df[aux,'cons.price.idx'] #Hechamos un ojo a los 10 valores más extremos
-	#df[aux,"cons.price.idx"]<-NA # los ponemos como NA's
-	#boxplot(df$cons.price.idx) #Hacemos boxplot de nuevo
+	
 	
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='cons.price.idx','missings']<-sum(is.na(df[,"cons.price.idx"]))
