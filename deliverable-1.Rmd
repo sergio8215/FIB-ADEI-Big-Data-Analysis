@@ -590,10 +590,12 @@ summary(df$f.previous)
 ```
 
 
-# Step 5:
+# Step 5: Profiling
+
 ```{r}
 
 rm(list=ls())#Limpiamos el workspace
 load("data-step-5.RData", envir = parent.frame(), verbose = FALSE)
+
 
 ```
