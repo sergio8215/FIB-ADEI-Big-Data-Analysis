@@ -1,12 +1,22 @@
 ---
 title: "deliverable-1"
+author: "Guillem Valls, Sergio Mazzariol"
 output:
-  word_document: default
-  pdf_document: default
-  html_document: default
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
 editor_options:
   chunk_output_type: console
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -18,9 +28,9 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 
 ```{r}
 
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 ```
 # Inicializamos datos y funciones
@@ -304,15 +314,18 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   # Para los individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
 
-#Para pdays/previous/outcome podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999
+#Para pdays/previous/outcome creemos que estan relacionadas, por lo que podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999
 
-  aux<-which(df$pdays==999)
-  aux2<-which(df$previous==0)
-  aux3<-which(df$poutcome=='nonexistent')
-  length(setdiff(aux3,aux2))#Cuantos en aux3 no están en aux2
-  length(setdiff(aux2,aux3))
-  length(setdiff(aux2,aux))
-  length(setdiff(aux,aux2))
+  rel_pdays<-which(df$pdays==999)
+  rel_previous<-which(df$previous==0)
+  rel_poutcome<-which(df$poutcome=='nonexistent')
+  length(setdiff(rel_poutcome, rel_previous)) # Cuantos en rel_poutcome no están en rel_previous y el resultado es 0
+  length(setdiff(rel_previous, rel_poutcome)) # Ahora en el modo inverso vemos que el resultado es 0
+  length(setdiff(rel_previous, rel_pdays))    # Los individuos que no han sido contactados en la campañas previa, tienen el pdays a 999
+  length(setdiff(rel_pdays,    rel_previous)) # Los individuos que nunca han sido contactados   
+  # preguntar porque la ultima diferencia da 527
+  
+  
   #Vemos que hay pdays=999 que tienen previous>0 y poutcome!='nonexistent'
   summary(df[setdiff(aux,aux2),c('previous','poutcome')])#Miramos el perfil de esos individuos
   #Les asignamos NA como missing values, pues parece que hayan tenido campaña previa
