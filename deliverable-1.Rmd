@@ -1,7 +1,10 @@
 ---
 title: "deliverable-1"
-output: html_document
-editor_options: 
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -15,7 +18,7 @@ Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay 
 
 ```{r}
 
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
@@ -287,7 +290,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$campaign);
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$campaign==0);aux #Si se incluye el último contacto, este valor no puede ser 0
+	aux<-which(df$campaign<=0);aux #Si se incluye el último contacto, este valor no puede ser 0
 	aux<-which(df$campaign>20);length(aux);df[aux,'campaign'] #Hechamos un ojo a los outliers mayores de 20
 	df[aux,"campaign"]<-NA # los ponemos como NA's
 	boxplot(df$campaign) #Hacemos boxplot de nuevo
@@ -295,7 +298,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='campaing','missings']<-sum(is.na(df[,"campaign"]))
   # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='campaing','errors']<-20 #preguntar a sergio porqué 20???
+  dqr[dqr$variable=='campaing','errors']<-0 
   # Para el data analisis guardamos los errores
   dqr[dqr$variable=='campaing','outliers']<-0
   # Para los individuales
@@ -380,7 +383,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
       aux2<-unique(df[which(df$month==j),i])
       cat(j,": ",aux2,"\n")
     }
-  }#Aparecen muchas discordancias #preguntar si es necesario cosiderar errores para estas variables pues o bien son índices locales que varían según la zona o bien son errores en introducir el mes o el valor
+  }#Aparecen muchas discordancias #preguntar si es necesario cosiderar errores para estas variables pues o bien son índices locales que varían según la zona o bien son errores en introducir el mes o el valor -> No complicarse con estas variables solo anotarlo como observación
   
 
 	# emp.var.rate
