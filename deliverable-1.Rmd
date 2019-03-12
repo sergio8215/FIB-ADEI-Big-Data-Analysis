@@ -420,7 +420,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 
   
 	# cons.price.idx
-  lenglevels(factor(df$cons.price.idx))
+  length(levels(factor(df$cons.price.idx)))
 	summary(df$cons.price.idx)
 	hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
 	boxplot(df$cons.price.idx, labels=row.names(df))
@@ -461,13 +461,10 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
 	boxplot(df$euribor3m, labels=row.names(df))
 
-	#aux<-calcQ(df$euribor3m);aux
-	#abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	#abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	#aux<-which(df$euribor3m>20);length(aux);df[aux,'euribor3m'] #Hechamos un ojo a los 10 valores más extremos
-	#df[aux,"euribor3m"]<-NA # los ponemos como NA's
-	#boxplot(df$euribor3m) #Hacemos boxplot de nuevo
-
+	aux<-calcQ(df$euribor3m);aux
+	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
+	
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='euribor3m','missings']<-sum(is.na(df[,"euribor3m"]))
   # Para el data analisis guardamos los outliers
@@ -481,13 +478,10 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
 	boxplot(df$nr.employed, labels=row.names(df))
 
-	#aux<-calcQ(df$nr.employed);aux
-	#abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	#abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	#aux<-which(df$nr.employed>20);length(aux);df[aux,'nr.employed'] #Hechamos un ojo a los 10 valores más extremos
-	#df[aux,"nr.employed"]<-NA # los ponemos como NA's
-	#boxplot(df$nr.employed) #Hacemos boxplot de nuevo
-
+	aux<-calcQ(df$nr.employed);aux
+	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
+	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
+	
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='nr.employed','missings']<-sum(is.na(df[,"nr.employed"]))
   # Para el data analisis guardamos los outliers
@@ -497,12 +491,6 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   
   #Imputacion de variables numericas
   summary(df[,vars_num])
-  
-  #Provisional para pruebas--------------- BORRAR
-  #save.image("pro")
-  rm(list=ls())
-  load("pro")
-  #--------------------------------------- FIN BORRAR
   
   #------------------------------alternativa con factors
   #aux<-c('previous','pdays','campaign') #PREGUNTA Para imputar estas variables con PCA resultan floats. ¿Alternativa pasándolo a factores??
@@ -579,11 +567,10 @@ levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))#Hacemos las e
 summary(df$f.campaign)
 
 # Para pdays
-aux<-quantile(df$pdays,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
-aux<-factor(cut(df$pdays,breaks=aux,include.lowest=T))
-table(aux)
-tapply(df$pdays,aux,median)
-aux2<-c(5,120,180,300,2100)#Niveles "naturales"
+sin_999<-which(df$pdays<999)
+summary(df$pday[sin_999])
+summary(factor(df$pday[sin_999])) # Podemos ver que se puede separar en 4 bloques
+aux2<-c(0,3,6,998,999) # Niveles para que este relativamente bien repartido
 aux<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))
 table(aux)
 tapply(df$pdays,aux,median)
@@ -591,17 +578,9 @@ df$f.pdays<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))#Nos quedamos con 
 levels(df$f.pdays)<-paste0("f.pdays-",levels(df$f.pdays))#Hacemos las etiquetas más informativas
 summary(df$f.pdays)
 
-# Para previous
-aux<-quantile(df$previous,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
-aux<-factor(cut(df$previous,breaks=aux,include.lowest=T))
-table(aux)
-tapply(df$previous,aux,median)
-aux2<-c(5,120,180,300,2100)#Niveles "naturales"
-aux<-factor(cut(df$previous,breaks=aux2,include.lowest=T))
-table(aux)
-tapply(df$previous,aux,median)
-df$f.previous<-factor(cut(df$previous,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
-levels(df$f.previous)<-paste0("f.previous-",levels(df$f.previous))#Hacemos las etiquetas más informativas
+# Para previous - Vemos que solo hay 4 niveles por lo que los pasamos directamente a factores
+table(df$previous)
+df$f.previous<-factor(df$previous)
 summary(df$f.previous)
 
 
