@@ -378,7 +378,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux3<-calcQ(aux2)
 	abline(h=aux3[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux3[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$previous>2);length(aux);df[aux,'previous']
+	aux<-which(df$previous>3);length(aux);df[aux,'previous'] # En vista de los limites de los outliers leves y graves que coinciden en uno, hemos decidio eliminar los valores mayores a 3, los cuales son solo 9.
 	df[aux,"previous"]<-NA # los ponemos como NA's
 	boxplot(df$previous) #Hacemos boxplot de nuevo
 	
@@ -428,9 +428,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$cons.price.idx)
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	#aux<-which(df$cons.price.idx>20);length(aux);df[aux,'cons.price.idx'] #Hechamos un ojo a los 10 valores más extremos
-	#df[aux,"cons.price.idx"]<-NA # los ponemos como NA's
-	#boxplot(df$cons.price.idx) #Hacemos boxplot de nuevo
+	
 	
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='cons.price.idx','missings']<-sum(is.na(df[,"cons.price.idx"]))
