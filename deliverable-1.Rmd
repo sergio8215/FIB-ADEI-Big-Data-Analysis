@@ -490,17 +490,25 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   
   #Provisional para pruebas--------------- BORRAR
   #save.image("pro")
-  #rm(list=ls())
-  #load("pro")
+  rm(list=ls())
+  load("pro")
   #--------------------------------------- FIN BORRAR
   
-  aux<-c('previous','pdays','campaign') #PREGUNTA Para imputar estas variables con PCA resultan floats. ¿Alternativa pasándolo a factores??
-  for(i in aux) df[,i]<-factor(df[,i])
-  aux2<-imputeMCA(df[,aux],ncp=10)
-  summary(aux2$completeObs)
-  df[,aux]<-aux2$completeObs
+  #------------------------------alternativa con factors
+  #aux<-c('previous','pdays','campaign') #PREGUNTA Para imputar estas variables con PCA resultan floats. ¿Alternativa pasándolo a factores??
+  #for(i in aux) df[,i]<-factor(df[,i])
+  #aux2<-imputeMCA(df[,aux],ncp=2)
+  #summary(df[,aux])
+  #summary(aux2$completeObs)
+  #df[,aux]<-aux2$completeObs
   #df[,vars_num]<-aux$completeObs
-# Guardamos los datos en este punto
+  #-------------------------------FIN alternativa factors
+  
+  #Obs
+
+  
+  
+  # Guardamos los datos en este punto
 #save.image("data-step-4.RData")
 
 ```
