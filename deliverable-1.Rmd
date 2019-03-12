@@ -316,9 +316,9 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   #Vemos que hay pdays=999 que tienen previous>0 y poutcome!='nonexistent'
   summary(df[setdiff(aux,aux2),c('previous','poutcome')])#Miramos el perfil de esos individuos
   #Les asignamos NA como missing values, pues parece que hayan tenido campaña previa
-  df[setdiff(aux,aux2),'pdays']<-NA
+  #df[setdiff(aux,aux2),'pdays']<-NA
   #guardamos los missingsindividuales
-  dqri[setdiff(aux,aux2),'missings']<-dqri[setdiff(aux,aux2),'missings']+1
+  #dqri[setdiff(aux,aux2),'missings']<-dqri[setdiff(aux,aux2),'missings']+1
 
 	# pdays - preguntar creemos que no hay outliers, solo se han contactado a 175 personas en la campaña previa
 	summary(df$pdays)
@@ -503,10 +503,18 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   #df[,aux]<-aux2$completeObs
   #df[,vars_num]<-aux$completeObs
   #-------------------------------FIN alternativa factors
+  #aux<-c('previous','campaign','pdays') #Solamente haremos imputación de dos variables ya que pdays no tiene NAs
   
-  #Obs
-
-  
+  aux2<-imputePCA(df[,vars_num],npc=5)
+  summary(df[,vars_num])
+  summary(aux2$completeObs)#Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos"
+  df[,vars_num]<-aux2$completeObs[,vars_num]
+  unique(df[,'previous'])
+  unique(df[,'campaign'])
+  aux<-c('previous','campaign')
+  df[,aux]<-round(df[,aux])
+  unique(df[,'previous'])
+  unique(df[,'campaign'])
   
   # Guardamos los datos en este punto
 #save.image("data-step-4.RData")
