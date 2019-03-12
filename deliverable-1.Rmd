@@ -447,10 +447,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$cons.conf.idx)
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	#aux<-which(df$cons.conf.idx>(-30));length(aux);df[aux,'cons.conf.idx'] #Hechamos un ojo a los 10 valores más extremos
-	#df[aux,"cons.conf.idx"]<-NA # los ponemos como NA's
-	#boxplot(df$cons.conf.idx) #Hacemos boxplot de nuevo
-
+	
 	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='cons.conf.idx','missings']<-sum(is.na(df[,"cons.conf.idx"]))
   # Para el data analisis guardamos los outliers
