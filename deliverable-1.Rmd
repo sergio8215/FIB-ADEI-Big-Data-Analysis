@@ -148,18 +148,18 @@ for(i in vars_cat){
 	dqr[dqr$variable==i,"errors"]<-0
 }
 
-aux<-match('default',vars_cat)
-aux<-vars_cat[-aux] # variables categoricas sin la categoria "default" porque nos da error al intentar imputarla #preguntar si es por la cantidad de NAs
-aux2<-imputeMCA(df[,aux],ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias(preferiblemente recategorizar despues de la imputación)
+#aux<-match('default',vars_cat)
+#aux<-vars_cat[-aux] # variables categoricas sin la categoria "default" porque nos da error al intentar imputarla #preguntar si es por la cantidad de NAs
+aux2<-imputeMCA(df,ncp=10)#preguntar hay diferencia entre imputar antes o despues de unir subcategorias(preferiblemente recategorizar despues de la imputación)
 
-for(i in aux){ # Contrastamos las imputaciones antes de modificar los datos
+for(i in vars_cat){ # Contrastamos las imputaciones antes de modificar los datos
   cat("################ ",i," ##################\n")
   print(summary(df[,i]))
   print("--- --- --- ---")
   print(summary(aux2$completeObs[,i]))
 }
 
-df[,aux]<-aux2$completeObs#Aceptamos las imputaciones realizadas
+df[,vars_cat]<-aux2$completeObs[,vars_cat] # Aceptamos las imputaciones realizadas  -  corregir para imputar
 
 # Guardamos los datos en este punto
 #save.image("data-step-2.RData")
@@ -182,7 +182,7 @@ for(i in vars_cat){
 
 # preguntar como criterio para las agrupaciones categoricas y en numericas
 
-#Job
+#Job  - revisar agrupar por ingresos 
 
 table(df$job)
 #     admin.   blue-collar  entrepreneur     housemaid    management       retired self-employed     
@@ -325,7 +325,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   length(setdiff(rel_previous, rel_poutcome)) # Ahora en el modo inverso vemos que el resultado es 0
   length(setdiff(rel_previous, rel_pdays))    # Los individuos que no han sido contactados en la campañas previa, tienen el pdays a 999
   length(setdiff(rel_pdays,    rel_previous)) # Los individuos que nunca han sido contactados   
-  # preguntar porque la ultima diferencia da 527
+  # preguntar porque la ultima diferencia da 527 - se toman como si no han participado nunnca en otra campaña por ejemplo ponerles 995 para identificar el error
   
   
   #Vemos que hay pdays=999 que tienen previous>0 y poutcome!='nonexistent'
@@ -375,6 +375,8 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux2<-df[aux,'previous']
 	boxplot(aux2, labels=row.names(df)) # queremos ver el boxplot de solo las valores mayores que 0
 
+	# no tiene outliers revisar
+	
 	aux3<-calcQ(aux2)
 	abline(h=aux3[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux3[9],col="magenta",lwd=2) #Fijamos límite extreme
@@ -399,7 +401,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
       cat(j,": ",aux2,"\n")
     }
   }#Aparecen muchas discordancias #preguntar si es necesario cosiderar errores para estas variables pues o bien son índices locales que varían según la zona o bien son errores en introducir el mes o el valor -> No complicarse con estas variables solo anotarlo como observación
-  
+  # explicar que es una incoherencia 
 
 	# emp.var.rate
   length(levels(factor(df$emp.var.rate)))#Comprobamos si solamente hay 10 valores distintos
@@ -566,7 +568,7 @@ df$f.campaign<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))#Nos quedamo
 levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))#Hacemos las etiquetas más informativas
 summary(df$f.campaign)
 
-# Para pdays
+# Para pdays - revisar solo dos niveles
 sin_999<-which(df$pdays<999)
 summary(df$pday[sin_999])
 summary(factor(df$pday[sin_999])) # Podemos ver que se puede separar en 4 bloques
@@ -596,6 +598,14 @@ summary(df$f.previous)
 
 rm(list=ls())#Limpiamos el workspace
 load("data-step-5.RData", envir = parent.frame(), verbose = FALSE)
+ condes(df,11,proba=0.001)
+ 
+ 
+tapply(df$duration,df$f.dur,mean)
+summary(df$duration)
 
+tapply(df$duration,df$y,mean)
+
+catdes(df,21,proba=0.001)
 
 ```

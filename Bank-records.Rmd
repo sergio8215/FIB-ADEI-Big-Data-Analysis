@@ -58,7 +58,7 @@ requiredPackages <- c("mvoutlier","chemometrics","mice","missForest","missMDA","
 missingPackages <- requiredPackages[!(requiredPackages %in% as.vector(installed.packages(lib.loc="~/R/win-library/3.5")[,"Package"]))]
 
 if(length(missingPackages)) install.packages(missingPackages)
-install.packages(requiredPackages,dependencies = TRUE,repos = c("http://rstudio.org/_packages","http://cran.rstudio.com"))
+#install.packages(requiredPackages,dependencies = TRUE,repos = c("http://rstudio.org/_packages","http://cran.rstudio.com"))
 lapply(requiredPackages, require, character.only = TRUE)
 
 ```
