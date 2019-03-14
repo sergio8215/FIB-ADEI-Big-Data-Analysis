@@ -86,7 +86,8 @@ vars_num<-c("age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.
 
 ```
 
-# Step 1: Analisis y exploración de datos
+# Step 1:
+## Analisis y exploración de datos
 
   Empezamos con la exploración de datos, verificamos los nombres de las variables, tambien un summary para comprobar que los datos son correctos.
 ```{r}
@@ -109,8 +110,8 @@ Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con l
 ```{r}
 summary(df$duration)
 
-par(mfrow=c(3,1))   
 hist(df$duration,100) 
+par(mfrow=c(1,2))   
 boxplot(df$duration) 
 aux<-calcQ(df$duration)
 abline(h=aux[8],col="red",lwd=2) 
@@ -153,7 +154,7 @@ for(i in vars_cat){
 
 # Para el data analisis guardamos los missings de las variables categoricas
 for(i in vars_cat){ 
-	dqr[dqr$variable==i,"missings"]<-sum(is.na(df[,i]))
+  dqr[dqr$variable==i,"missings"]<-sum(is.na(df[,i]))
 }
 ```
 Ahora realizamos la imputación de las variables categóricas.
@@ -175,7 +176,8 @@ df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imput
 
 ```
 
-# Step 2: REFACTORIZACIÓN
+# Step 2: 
+## Refactorización
 
 Agrupamos subcategorias en menos categorias. En el resumen anterior de las variables categoricas, podemos ver como reagruparlas.
 En jobs realizamos la agrupación en función del posible ingreso monetario. Finalmente vemos la reagrupación final la cual no ha quedado uniformemente distribuida pero sin embargo, los grupos tienen una relación más significativa.
@@ -265,20 +267,21 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
     Consideramos que en los 10 meses que dura la campaña, un máximo de 20 contactos es aceptable puesto que eso implica una media de un contacto cada 15 días.
 
 ```{r}
-	# campaign
-	summary(df$campaign)
-	hist(df$campaign,col="cyan",main="campaign - Histogram")
-	boxplot(df$campaign, labels=row.names(df))
-
-	aux<-calcQ(df$campaign);
-	abline(h=aux[8],col="red",lwd=2) 
-	abline(h=aux[9],col="magenta",lwd=2) 
-	aux<-which(df$campaign<=0);aux  # Si se incluye el último contacto, este valor no puede ser 0
-	aux<-which(df$campaign>20);length(aux);df[aux,'campaign']
-	df[aux,"campaign"]<-NA 
-	boxplot(df$campaign)
-	
-	# Para el data analisis guardamos los missings
+  # campaign
+  summary(df$campaign)
+  hist(df$campaign,col="cyan",main="campaign - Histogram")
+  par(mfrow=c(1,2)) 
+  boxplot(df$campaign, labels=row.names(df))
+  aux<-calcQ(df$campaign);
+  abline(h=aux[8],col="red",lwd=2) 
+  abline(h=aux[9],col="magenta",lwd=2) 
+  aux<-which(df$campaign<=0);aux  # Si se incluye el último contacto, este valor no puede ser 0
+  aux<-which(df$campaign>20);length(aux);df[aux,'campaign']
+  df[aux,"campaign"]<-NA 
+  boxplot(df$campaign)
+  par(mfrow=c(1,1)) 
+  
+  # Para el data analisis guardamos los missings
   dqr[dqr$variable=='campaing','missings']<-sum(is.na(df[,"campaign"]))
   # Para los individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
@@ -307,11 +310,13 @@ Al ver el resultado podemos decir que hay incongruencias entre el pdays y previo
 
 ## previous
   Consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 capañas previas, lo que tiene sentido.
-	
+  
 ```{r}
-	summary(df$previous)#Vemos que gran parte de los valores es 0
-	hist(df$previous,col="cyan",main="previous - Histogram")
-	boxplot(df$previous, labels=row.names(df))
+  summary(df$previous)#Vemos que gran parte de los valores es 0
+  par(mfrow=c(1,2)) 
+  hist(df$previous,col="cyan",main="previous - Histogram")
+  boxplot(df$previous, labels=row.names(df))
+  par(mfrow=c(1,1)) 
 ```
 
 ### 
@@ -336,9 +341,9 @@ Al ver el resultado podemos decir que hay incongruencias entre el pdays y previo
 
 ```{r}
   summary(df$emp.var.rate)
-	summary(df$cons.price.idx)
-	summary(df$cons.conf.idx)
-	summary(df$euribor3m)
+  summary(df$cons.price.idx)
+  summary(df$cons.conf.idx)
+  summary(df$euribor3m)
   summary(df$nr.employed)
 ```
 Realizamos la imputación de las variables númericas y comparamos los datos imputados con los originales.
@@ -418,53 +423,31 @@ levels(df$f.pdays)<-paste0("f.pdays-",levels(df$f.pdays))#Hacemos las etiquetas 
 summary(df$f.pdays)
 ```
 
+### previous - Vemos que solo hay 4 niveles por lo que los pasamos directamente a factores
 ```{r}
-# Para previous - Vemos que solo hay 4 niveles por lo que los pasamos directamente a factores
 table(df$previous)
 df$f.previous<-factor(df$previous)
 summary(df$f.previous)
-
-
-# Guardamos los datos en este punto
-# save.image("data-step-5.RData")
-
 ```
 
 
-# Step 5: Profiling
+# Step 5:
+## Profiling
+  Para poder hacer profiling, necesitamos darle nombres a los subniveles de los factores, para esto hacemos un bucle que recorre cada variable categorica y le añade el nombre de la variable . el nombre del nivel.
+Luego procedemos a ejecutar la función condes con la variable target duration, la cual se encuentra en la posición 11 de nuestro data frame, usamos una probabilidad de 0.01 la cual consideramos puede mostrarnos el resultado que queremos. Para la función catdes usamos a variable Y la cual se encuenta en la posición 12 de nuestro data frame.
 
 ```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-step-5.RData", envir = parent.frame(), verbose = FALSE)
-
-# Añadimos nombres a los subniveles de las factores
 vars_cat_con_y<-c(vars_cat,"y")
 for (i in vars_cat_con_y){
   levels(df[,i])<-paste0(i,".",levels(df[,i]))
 }
 
-
-sink("out.txt")
-cat("=================================================================================
-								CONDES
-=================================================================================
-")
-# El 11 es la posición de la variable duration
-condes(df,11,proba=0.01) # Ya que con el valor de 0.001 solo tenemos relación con campaing, decidimos probar con un valor mayor
- 
+condes(df,11,proba=0.01)
  
 tapply(df$duration,df$f.dur,mean)
 summary(df$duration)
-
 tapply(df$duration,df$y,mean)
 
-cat("=================================================================================
-								CATDES
-=================================================================================
-")
 catdes(df,21,proba=0.001)
-sink()
-
-
 
 ```

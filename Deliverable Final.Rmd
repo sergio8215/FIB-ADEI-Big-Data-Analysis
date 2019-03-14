@@ -1,9 +1,22 @@
 ---
-title: "Deliverable 2.0"
-author: "Sergio Mazzariol, Guillem Vals"
-date: "14 de marzo de 2019"
-output: word_document
+title: "Deliverable 1"
+author: "Guillem Valls, Sergio Mazzariol"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+editor_options:
+  chunk_output_type: console
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -73,7 +86,8 @@ vars_num<-c("age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.
 
 ```
 
-# Step 1: Analisis y exploración de datos
+# Step 1:
+## Analisis y exploración de datos
 
   Empezamos con la exploración de datos, verificamos los nombres de las variables, tambien un summary para comprobar que los datos son correctos.
 ```{r}
@@ -96,8 +110,8 @@ Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con l
 ```{r}
 summary(df$duration)
 
-par(mfrow=c(3,1))   
 hist(df$duration,100) 
+par(mfrow=c(1,2))   
 boxplot(df$duration) 
 aux<-calcQ(df$duration)
 abline(h=aux[8],col="red",lwd=2) 
@@ -140,7 +154,7 @@ for(i in vars_cat){
 
 # Para el data analisis guardamos los missings de las variables categoricas
 for(i in vars_cat){ 
-	dqr[dqr$variable==i,"missings"]<-sum(is.na(df[,i]))
+  dqr[dqr$variable==i,"missings"]<-sum(is.na(df[,i]))
 }
 ```
 Ahora realizamos la imputación de las variables categóricas.
@@ -162,7 +176,8 @@ df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imput
 
 ```
 
-# Step 2: REFACTORIZACIÓN
+# Step 2: 
+## Refactorización
 
 Agrupamos subcategorias en menos categorias. En el resumen anterior de las variables categoricas, podemos ver como reagruparlas.
 En jobs realizamos la agrupación en función del posible ingreso monetario. Finalmente vemos la reagrupación final la cual no ha quedado uniformemente distribuida pero sin embargo, los grupos tienen una relación más significativa.
@@ -247,105 +262,69 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
 
     ### age
      Consideramos que no presenta ningún outlier, ya que las edades comprendidas entre 18 y 92 años, son considerados normal.
+
+    ### campaing
+    Consideramos que en los 10 meses que dura la campaña, un máximo de 20 contactos es aceptable puesto que eso implica una media de un contacto cada 15 días.
+
 ```{r}
-	# age - 
+  # campaign
+  summary(df$campaign)
+  hist(df$campaign,col="cyan",main="campaign - Histogram")
+  par(mfrow=c(1,2)) 
+  boxplot(df$campaign, labels=row.names(df))
+  aux<-calcQ(df$campaign);
+  abline(h=aux[8],col="red",lwd=2) 
+  abline(h=aux[9],col="magenta",lwd=2) 
+  aux<-which(df$campaign<=0);aux  # Si se incluye el último contacto, este valor no puede ser 0
+  aux<-which(df$campaign>20);length(aux);df[aux,'campaign']
+  df[aux,"campaign"]<-NA 
+  boxplot(df$campaign)
+  par(mfrow=c(1,1)) 
   
   # Para el data analisis guardamos los missings
-  dqr[dqr$variable=='age','missings']<-0
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='age','errors']<-0
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='age','outliers']<-0
-  
-
-
-	# campaign - Consideramos que en los 10 meses que dura la campaña, contactar a un cliente como maximo cada 15 días puede ser posible
-	summary(df$campaign)
-	hist(df$campaign,col="cyan",main="campaign - Histogram")
-	boxplot(df$campaign, labels=row.names(df))
-
-	aux<-calcQ(df$campaign);
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$campaign<=0);aux #Si se incluye el último contacto, este valor no puede ser 0
-	aux<-which(df$campaign>20);length(aux);df[aux,'campaign'] #Hechamos un ojo a los outliers mayores de 20
-	df[aux,"campaign"]<-NA # los ponemos como NA's
-	boxplot(df$campaign) #Hacemos boxplot de nuevo
-	
-	# Para el data analisis guardamos los missings
   dqr[dqr$variable=='campaing','missings']<-sum(is.na(df[,"campaign"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='campaing','errors']<-0 
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='campaing','outliers']<-0
   # Para los individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
+```
 
-# Verificamos si hay algun error o outlier en pdays  
+## Verificamos si hay algun error o outlier en pdays  
+Para pdays/previous/outcome creemos que estan relacionadas, por lo que podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999.
+Al ver el resultado podemos decir que hay incongruencias entre el pdays y previous, ya que todos los que son pdays = 999, deberian ser previous = nonexistent, lo que en este caso nos dan 527 individuos que no cumplen esta condición. Como suponen más de un 10% de la muestra y nuestro trabajo no es exhaustivo vamos a ignorar esta incongruencia.
 
-#Para pdays/previous/outcome creemos que estan relacionadas, por lo que podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999
-
+```{r}
   rel_pdays<-which(df$pdays==999)
   rel_previous<-which(df$previous==0)
   rel_poutcome<-which(df$poutcome=='nonexistent')
-  length(setdiff(rel_poutcome, rel_previous)) # Cuantos en rel_poutcome no están en rel_previous y el resultado es 0
-  length(setdiff(rel_previous, rel_poutcome)) # Ahora en el modo inverso vemos que el resultado es 0
-  length(setdiff(rel_previous, rel_pdays))    # Los individuos que no han sido contactados en la campañas previa, tienen el pdays a 999
-  length(setdiff(rel_pdays,    rel_previous)) # Los individuos que nunca han sido contactados   
-  # preguntar porque la ultima diferencia da 527 - se toman como si no han participado nunnca en otra campaña por ejemplo ponerles 995 para identificar el error
+  length(setdiff(rel_poutcome, rel_previous)) 
+  length(setdiff(rel_previous, rel_poutcome)) 
+  length(setdiff(rel_previous, rel_pdays))    
+  length(setdiff(rel_pdays,    rel_previous)) 
+  summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')]) # Miramos el perfil de esos individuos
+```
+### pdays
+  Con el summary podemos ver que no tenemos outliers ni errores, tampoco missings.
+
+```{r}
+  summary(df$pdays)
+```
+
+## previous
+  Consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 capañas previas, lo que tiene sentido.
   
-  
-  #Vemos que hay pdays=999 que tienen previous>0 y poutcome!='nonexistent'
-  summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')])#Miramos el perfil de esos individuos
-  #Les asignamos NA como missing values, pues parece que hayan tenido campaña previa
-  #df[setdiff(aux,aux2),'pdays']<-NA
-  #guardamos los missingsindividuales
-  #dqri[setdiff(aux,aux2),'missings']<-dqri[setdiff(aux,aux2),'missings']+1
+```{r}
+  summary(df$previous)#Vemos que gran parte de los valores es 0
+  par(mfrow=c(1,2)) 
+  hist(df$previous,col="cyan",main="previous - Histogram")
+  boxplot(df$previous, labels=row.names(df))
+  par(mfrow=c(1,1)) 
+```
 
-	# pdays - preguntar creemos que no hay outliers, solo se han contactado a 175 personas en la campaña previa
-	summary(df$pdays)
-	aux2<-which(df$pdays<999);summary(df$pdays[aux2])
-	aux<-df$pdays[aux2]
-	hist(aux,col="cyan",main="pdays - Histogram")
-	boxplot(aux, labels=row.names(df))
+### 
+  Para los índices trimestrales/mensuales (emp.var.rate/nr.employed/cons.prize.idx/cons.conf.idx) cabe esperar que tengan los mismos valores para cada mes, si no es que son errores.
+  Aparecen muchas discordancias, ya que para cada individo y para un mismo mes el valor debería ser el mismo, en este caso no lo son.
+   Nuestro trabajo no es exhaustivo vamos a ignorar esta incongruencia.
 
-	aux2<-calcQ(aux);
-	abline(h=aux2[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux2[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which( (df$pdays<999 & df$pdays>20) | (df$pdays<0));length(aux);df[aux,'pdays'] #Hechamos un ojo a los valores mayores a 20
-	
-	# Para el data analisis guardamos los missings
-  dqr[dqr$variable=='pdays','missings']<-sum(is.na(df[,"pdays"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='pdays','errors']<-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='pdays','outliers']<-0
-
-
-
-	# previous - Vemos que de los outliers del boxplot 
-  
-  # Para el data analisis guardamos los missings
-  aux<-which(is.na(df$previous))
-  dqr[dqr$variable=='previous','missings']<-length(aux)
-  dqri[aux,'missings']<-dqri[aux,'missings']+1
-  
-	summary(df$previous)#Vemos que gran parte de los valores es 0
-	hist(df$previous,col="cyan",main="previous - Histogram")
-	boxplot(df$previous, labels=row.names(df))
-
-	aux<-calcQ(df$previous)
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	# consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 capañas previas, lo que tiene sentido.
-	
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='previous','errors']<-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='previous','outliers']<-0
-  
-
-  #Para los índices trimestrales/mensuales (emp.var.rate/nr.employed/cons.prize.idx/cons.conf.idx) cabe esperar que tengan los mismos valores para cada mes, si no es que son errores
+```{r}
   aux<-c('emp.var.rate','nr.employed','cons.price.idx','cons.conf.idx')
   for(i in aux){
     cat("################ ",i," ##################\n")
@@ -354,135 +333,55 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
       aux2<-unique(df[which(df$month==j),i])
       cat(j,": ",aux2,"\n")
     }
-  }#Aparecen muchas discordancias #preguntar si es necesario cosiderar errores para estas variables pues o bien son índices locales que varían según la zona o bien son errores en introducir el mes o el valor -> No complicarse con estas variables solo anotarlo como observación
-  # explicar que es una incoherencia 
+  }
+```
+  ### Emp.var.rate,cons.price.idx, cons.conf.idx, euribor3m, nr.employed
+  Necesitamos saber como se han optenido estos datos para poder validarlos, como no tenemos es información solo podemos comprobar los missings values.
+  En este casa al hacer summary de cada variable, podemos ver que no existen missings.
 
-	# emp.var.rate
-  length(levels(factor(df$emp.var.rate)))#Comprobamos si solamente hay 10 valores distintos
-	summary(df$emp.var.rate)
-	hist(df$emp.var.rate,col="cyan",main="emp.var.rate - Histogram")
-	boxplot(df$emp.var.rate, labels=row.names(df))
-
-	aux<-calcQ(df$emp.var.rate)
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	
-	# Para el data analisis guardamos los missings
-  dqr[dqr$variable=='emp.var.rate','missings']<-sum(is.na(df[,"emp.var.rate"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='emp.var.rate','errors']<-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='emp.var.rate','outliers']<-0
-
-  
-	# cons.price.idx
-  length(levels(factor(df$cons.price.idx)))
-	summary(df$cons.price.idx)
-	hist(df$cons.price.idx,col="cyan",main="cons.price.idx - Histogram")
-	boxplot(df$cons.price.idx, labels=row.names(df))
-
-	aux<-calcQ(df$cons.price.idx)
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	
-	
-	# Para el data analisis guardamos los missings
-  dqr[dqr$variable=='cons.price.idx','missings']<-sum(is.na(df[,"cons.price.idx"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='cons.price.idx','errors']<-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='cons.price.idx','outliers']<-0
-
-
-	# cons.conf.idx
-	levels(factor(df$cons.conf.idx))
+```{r}
+  summary(df$emp.var.rate)
+  summary(df$cons.price.idx)
   summary(df$cons.conf.idx)
-	hist(df$cons.conf.idx,col="cyan",main="cons.conf.idx - Histogram")
-	boxplot(df$cons.conf.idx, labels=row.names(df))
-
-	aux<-calcQ(df$cons.conf.idx)
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	
-	# Para el data analisis guardamos los missings
-  dqr[dqr$variable=='cons.conf.idx','missings']<-sum(is.na(df[,"cons.conf.idx"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='cons.conf.idx','errors']<-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='cons.conf.idx','outliers']<-0
-
-
-	# euribor3m
-	summary(df$euribor3m)
-	hist(df$euribor3m,col="cyan",main="euribor3m - Histogram")
-	boxplot(df$euribor3m, labels=row.names(df))
-
-	aux<-calcQ(df$euribor3m);aux
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	
-	# Para el data analisis guardamos los missings
-  dqr[dqr$variable=='euribor3m','missings']<-sum(is.na(df[,"euribor3m"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='euribor3m','errors']<-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='euribor3m','outliers']<-0
-
-	# nr.employed
-	levels(factor(df$nr.employed))
+  summary(df$euribor3m)
   summary(df$nr.employed)
-	hist(df$nr.employed,col="cyan",main="nr.employed - Histogram")
-	boxplot(df$nr.employed, labels=row.names(df))
+```
+Realizamos la imputación de las variables númericas y comparamos los datos imputados con los originales.
+Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos"
+Igual que en  el caso anterior, solo se sobre escriben las variables imputadas en nuestro df.
 
-	aux<-calcQ(df$nr.employed);aux
-	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	
-	# Para el data analisis guardamos los missings
-  dqr[dqr$variable=='nr.employed','missings']<-sum(is.na(df[,"nr.employed"]))
-  # Para el data analisis guardamos los outliers
-  dqr[dqr$variable=='nr.employed','errors'] <-0 # no se ve ningun numero negativo o algo raro
-  # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='nr.employed','outliers']<-0
-  
-  #Imputacion de variables numericas
-  summary(df[,vars_num])
-  
+```{r}
   vars_num_imp<-imputePCA(df[,vars_num],npc=5)
+  
   summary(df[,vars_num])
-  summary(vars_num_imp$completeObs)#Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos"
+  summary(vars_num_imp$completeObs)
+  
   df[,vars_num]<-vars_num_imp$completeObs[,vars_num]
-  unique(df[,'previous'])
-  unique(df[,'campaign'])
   aux<-c('previous','campaign')
   df[,aux]<-round(df[,aux])
-  unique(df[,'previous'])
-  unique(df[,'campaign'])
-  
-  # Guardamos los datos en este punto
-#   save.image("data-step-4.RData")
-
 ```
-
-
-# Step 4: Crear factores adicionales para cada variable cuantitativa
+# Step 4:
+## Crear factores adicionales para cada variable cuantitativa
+  ### Age
+  Primero miramos cuan distribuidos quedan aplicando unos cortes según los cuartiles, como estos no difieren demasiado con los niveles naturales(20 añeros, 30 añeros...) preferimos quedarnos con los niveles naturales.
 ```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-step-4.RData", envir = parent.frame(), verbose = FALSE)
-
-# Para Age
-aux<-quantile(df$age,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
+aux<-quantile(df$age,seq(0,1,0.25),na.rm=TRUE) # Niveles por quartiles
 aux<-factor(cut(df$age,breaks=aux,include.lowest=T))
 table(aux)
 tapply(df$age,aux,median)
-aux2<-c(18,30,40,50,92)#Niveles "naturales"
+aux2<-c(18,30,40,50,92) # Niveles "naturales"
 aux<-factor(cut(df$age,breaks=aux2,include.lowest=T))
 table(aux)
 tapply(df$age,aux,median)
-df$f.age<-factor(cut(df$age,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
-levels(df$f.age)<-paste0("f.age-",levels(df$f.age))#Hacemos las etiquetas más informativas
+df$f.age<-factor(cut(df$age,breaks=aux2,include.lowest=T))
+levels(df$f.age)<-paste0("f.age-",levels(df$f.age))
 summary(df$f.age)
+```
+### Duration
+  
+  Hemos buscado una distribución más o menos equilibrada y hemos conseguido separarlo en niveles de 2min, 3min,5min, y el resto.
 
+```{r}
 # Para duration
 aux<-quantile(df$duration,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
 aux<-factor(cut(df$duration,breaks=aux,include.lowest=T))
@@ -495,22 +394,26 @@ tapply(df$duration,aux,median)
 df$f.duration<-factor(cut(df$duration,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
 levels(df$f.duration)<-paste0("f.duration-",levels(df$f.duration))#Hacemos las etiquetas más informativas
 summary(df$f.duration)
+```
+### Campaign
+  Como para esta variable la mayoria de los valores están entre 0 y 1, no se puede hacer la separción por cuartiles.
+  Hemos realizado una factorización manual viendo la cantidad de valores en ca
 
-# Para campaign
-#aux<-quantile(df$campaign,seq(0,1,0.25),na.rm=TRUE)#Niveles por quartiles
-aux<-levels(factor(df$campaign))#En este caso no funcionan los niveles por quartiles. Miramos todos los niveles
+```{r}
+aux<-levels(factor(df$campaign))
 aux<-factor(cut(df$campaign,breaks=aux,include.lowest=T))
 table(aux)
 tapply(df$campaign,aux,median)
-aux2<-c(0,1,2,20)#Niveles "naturales"
+aux2<-c(0,1,2,20)
 aux<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))
 table(aux)
-#tapply(df$campaign,aux,median)#no tiene sentido ver la mediana en valores tan pequeños
-df$f.campaign<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
-levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))#Hacemos las etiquetas más informativas
+df$f.campaign<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))
+levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))
 summary(df$f.campaign)
+```
 
-# Para pdays - Para pdays no tiene sentido ver outliers  - revisar solo dos niveles
+### pdays
+```{r}
 aux2<-c(0,998,999) # Nos quedamos solo con dos niveles ya que no tiene sentido hacer más
 pdays_cutted<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))
 table(pdays_cutted)
@@ -518,53 +421,33 @@ tapply(df$pdays,pdays_cutted,median)
 df$f.pdays<-pdays_cutted # Nos quedamos con los niveles naturales
 levels(df$f.pdays)<-paste0("f.pdays-",levels(df$f.pdays))#Hacemos las etiquetas más informativas
 summary(df$f.pdays)
+```
 
-# Para previous - Vemos que solo hay 4 niveles por lo que los pasamos directamente a factores
+### previous - Vemos que solo hay 4 niveles por lo que los pasamos directamente a factores
+```{r}
 table(df$previous)
 df$f.previous<-factor(df$previous)
 summary(df$f.previous)
-
-
-# Guardamos los datos en este punto
-# save.image("data-step-5.RData")
-
 ```
 
 
-# Step 5: Profiling
+# Step 5:
+## Profiling
+  Para poder hacer profiling, necesitamos darle nombres a los subniveles de los factores, para esto hacemos un bucle que recorre cada variable categorica y le añade el nombre de la variable . el nombre del nivel.
+Luego procedemos a ejecutar la función condes con la variable target duration, la cual se encuentra en la posición 11 de nuestro data frame, usamos una probabilidad de 0.01 la cual consideramos puede mostrarnos el resultado que queremos. Para la función catdes usamos a variable Y la cual se encuenta en la posición 12 de nuestro data frame.
 
 ```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-step-5.RData", envir = parent.frame(), verbose = FALSE)
-
-# Añadimos nombres a los subniveles de las factores
 vars_cat_con_y<-c(vars_cat,"y")
 for (i in vars_cat_con_y){
   levels(df[,i])<-paste0(i,".",levels(df[,i]))
 }
 
-
-sink("out.txt")
-cat("=================================================================================
-								CONDES
-=================================================================================
-")
-# El 11 es la posición de la variable duration
-condes(df,11,proba=0.01) # Ya que con el valor de 0.001 solo tenemos relación con campaing, decidimos probar con un valor mayor
- 
+condes(df,11,proba=0.01)
  
 tapply(df$duration,df$f.dur,mean)
 summary(df$duration)
-
 tapply(df$duration,df$y,mean)
 
-cat("=================================================================================
-								CATDES
-=================================================================================
-")
 catdes(df,21,proba=0.001)
-sink()
-
-
 
 ```
