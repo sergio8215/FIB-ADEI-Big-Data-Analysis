@@ -159,7 +159,7 @@ for(i in vars_cat){ # Contrastamos las imputaciones antes de modificar los datos
 }
 
 no_imputadas<-c("poutcome","day_of_week","month","contact","default")
-df[,vars_cat]<-aux2$completeObs[,setdiff(vars_cat,no_imputadas)] # Aceptamos las imputaciones realizadas, solo guardamos las variables que tenian NA's
+df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imputadas)] # Aceptamos las imputaciones realizadas, solo guardamos las variables que tenian NA's
 
 # Guardamos los datos en este punto
 #save.image("data-step-2.RData")
@@ -211,6 +211,7 @@ df$f.job[aux] <-4
 
 summary(df$f.job)
 df$f.job<-factor(df$f.job,levels=1:4,labels=c("Admin-Managment", "Entrep-Retired-selfEmpl", "Not-working", "Serv-Tech-BlueC"))
+levels(df$f.job)<-paste0("f.job.",levels(df$f.job)) # Hacemos las etiquetas más informativas
 summary(df$f.job)
 
 
@@ -236,6 +237,7 @@ df$f.season[aux] <-3
 
 summary(df$f.season)
 df$f.season<-factor(df$f.season,levels=1:3,labels=c("Mar-May","Jun-Aug","Sep-Dec"))
+levels(df$f.season)<-paste0("f.season.",levels(df$f.season)) # Hacemos las etiquetas más informativas
 summary(df$f.season)
 
 #Education
@@ -490,7 +492,7 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
   unique(df[,'campaign'])
   
   # Guardamos los datos en este punto
-  # save.image("data-step-4.RData")
+#   save.image("data-step-4.RData")
 
 ```
 
@@ -576,9 +578,13 @@ for (i in vars_cat_con_y){
 }
 
 
-
+sink("out.txt")
+cat("=================================================================================
+								CONDES
+=================================================================================
+")
 # El 11 es la posición de la variable duration
-condes(df,11,proba=0.001)
+condes(df,11,proba=0.01) # Ya que con el valor de 0.001 solo tenemos relación con campaing, decidimos probar con un valor mayor
  
  
 tapply(df$duration,df$f.dur,mean)
@@ -586,8 +592,18 @@ summary(df$duration)
 
 tapply(df$duration,df$y,mean)
 
-sink("out.txt")
+cat("=================================================================================
+								CATDES
+=================================================================================
+")
 catdes(df,21,proba=0.001)
 sink()
+
+
+prop.table(table(df$y)) # y
+prop.table(table(df$f.duration)) # f.duration
+prop.table(table(df$foreign,SwissLabor$participation),1)
+prop.table(table(df$foreign,SwissLabor$participation),2)
+catdes(SwissLabor,1)
 
 ```
