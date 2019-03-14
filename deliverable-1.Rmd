@@ -191,29 +191,26 @@ table(df$job)
 #         451           109           817      114 
 # Define new factor categories: 1-Admin 2-Bussines 3-Not working 4-Serv-Tech 5-Blue-Collar
 
-df$f.job <- 5
-# 1 level - Admin 
-aux<-which(df$job %in% c("admin."))
+df$f.job <- 4
+# 1 level - Admin-Managment
+aux<-which(df$job %in% c("admin.", "management"))
 df$f.job[aux] <-1
 
-# 2 level - Bussines 
-aux<-which(df$job %in% c("entrepreneur", "management", "self-employed"))
+# 2 level - Entrep-Retired-selfEmpl
+aux<-which(df$job %in% c("entrepreneur", "retired", "self-employed"))
 df$f.job[aux] <-2
 
 # 3 level - Not working
-aux<-which(df$job %in% c("housemaid", "retired","unemployed","student"))
+aux<-which(df$job %in% c("housemaid","unemployed","student"))
 df$f.job[aux] <-3
 
-# 4 level - Serv-Tech
-aux<-which(df$job %in% c("services","technician"))
+# 4 level - Serv-Tech-BlueC
+aux<-which(df$job %in% c("services","technician","blue-collar"))
 df$f.job[aux] <-4
 
-# 5 level - Blue-Collar
-aux<-which(df$job %in% c("blue-collar"))
-df$f.job[aux] <-5
 
 summary(df$f.job)
-df$f.job<-factor(df$f.job,levels=1:5,labels=c("Admin", "Bussines", "Not-working", "Serv-Tech", "Blue-Collar"))
+df$f.job<-factor(df$f.job,levels=1:4,labels=c("Admin-Managment", "Entrep-Retired-selfEmpl", "Not-working", "Serv-Tech-BlueC"))
 summary(df$f.job)
 
 
@@ -370,24 +367,12 @@ load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
 	aux<-calcQ(df$previous)
 	abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
 	abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-	
-	aux<-which(df$previous>0)
-	aux2<-df[aux,'previous']
-	boxplot(aux2, labels=row.names(df)) # queremos ver el boxplot de solo las valores mayores que 0
-
-	# no tiene outliers revisar
-	
-	aux3<-calcQ(aux2)
-	abline(h=aux3[8],col="red",lwd=2) #Fijamos límite soft
-	abline(h=aux3[9],col="magenta",lwd=2) #Fijamos límite extreme
-	aux<-which(df$previous>3);length(aux);df[aux,'previous'] # En vista de los limites de los outliers leves y graves que coinciden en uno, hemos decidio eliminar los valores mayores a 3, los cuales son solo 9.
-	df[aux,"previous"]<-NA # los ponemos como NA's
-	boxplot(df$previous) #Hacemos boxplot de nuevo
+	# consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 capañas previas, lo que tiene sentido.
 	
   # Para el data analisis guardamos los outliers
   dqr[dqr$variable=='previous','errors']<-0 # no se ve ningun numero negativo o algo raro
   # Para el data analisis guardamos los errores
-  dqr[dqr$variable=='previous','outliers']<-length(aux)
+  dqr[dqr$variable=='previous','outliers']<-0
   # Para individuales
   dqri[aux,'outliers']<-dqri[aux,'outliers']+1
 
@@ -568,15 +553,12 @@ df$f.campaign<-factor(cut(df$campaign,breaks=aux2,include.lowest=T))#Nos quedamo
 levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))#Hacemos las etiquetas más informativas
 summary(df$f.campaign)
 
-# Para pdays - revisar solo dos niveles
-sin_999<-which(df$pdays<999)
-summary(df$pday[sin_999])
-summary(factor(df$pday[sin_999])) # Podemos ver que se puede separar en 4 bloques
-aux2<-c(0,3,6,998,999) # Niveles para que este relativamente bien repartido
-aux<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))
-table(aux)
-tapply(df$pdays,aux,median)
-df$f.pdays<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))#Nos quedamos con los niveles naturales
+# Para pdays - Para pdays no tiene sentido ver outliers  - revisar solo dos niveles
+aux2<-c(0,998,999) # Nos quedamos solo con dos niveles ya que no tiene sentido hacer más
+pdays_cutted<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))
+table(pdays_cutted)
+tapply(df$pdays,pdays_cutted,median)
+df$f.pdays<-pdays_cutted # Nos quedamos con los niveles naturales
 levels(df$f.pdays)<-paste0("f.pdays-",levels(df$f.pdays))#Hacemos las etiquetas más informativas
 summary(df$f.pdays)
 
