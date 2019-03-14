@@ -1,22 +1,9 @@
 ---
-title: "deliverable-1"
-author: "Guillem Valls, Sergio Mazzariol"
-output:
-  word_document:
-    toc: yes
-    toc_depth: '3'
-  pdf_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: '3'
-  html_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: 3
-editor_options:
-  chunk_output_type: console
+title: "Deliverable 2.0"
+author: "Sergio Mazzariol, Guillem Vals"
+date: "14 de marzo de 2019"
+output: word_document
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -36,132 +23,112 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 ```
 
-
 # Loading data
+
+Establecemos el directorio de trabajo, luego importamos todos los datos del archivo csv bank-additional-full, establecemos una semilla para obtener siempre la misma muestra "aleatoria", obtenemos 5000 individuos que se usarán para el análisis a lo largo de toda la asignatura.
+
 
 ```{r}
 setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+
 # Data file alread
 df<-read.table('bank-additional-full.csv',header=TRUE,sep=";")
+
 # Select your 5000 register sample (random sample)
 set.seed(19101990)
 llista<-sample(size=5000,x=1:nrow(df),replace=FALSE)
 llista<-sort(llista)
+
 #llista
 df<-df[llista,]
-save.image("set-datos.RData")
-```
-
-
-# Loading data
-Cargamos los datos guardados en el fichero set-Datos.RData. En este fichero hay la muestra de 5000 individuos que se usará para el análisis. Podemos comprobar que la dimensión de los datos es correcto, 5000 filas y 21 columnas.
-
-```{r}
-
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/GUILLEM/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
-
-```
-# Inicializamos datos y funciones
-```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-INI.RData", envir = parent.frame(), verbose = FALSE)#cargamos los datos
-
-#Comprobar el tamaño de la muestra
 dim(df)
-#Creamos dataframe para almacenar missings, errors, outliers
-dqr <- data.frame(variable=character(), missings=integer(), errors=integer(), outliers=integer())
-dqr[length(names(df)),]<-NA
-dqr$variable <-names(df)
+#save.image("set-datos.RData")
+```
 
-#También para individuales
+# Inicializamos datos y funciones
+Creamos un dataframe que llamamos data quality report "dqr" para almacenar missings, errors, outliers. También creamos uno para los datos individuales "dqri". Inicializamos el "dqr" todo a 0, y el dqri lo Inicializamos a 0 pero despues de eliminar los individuos que nos dan outliers o errores en las variables target.
+Declaramos la función calcQ que nos permitirá discriminar los outliers leves y severos en los boxplots.
+Para poder tratar los datos con mayor facilidad separamos las variables en tres grupos, las variables target "duration, y", las variables categoricas "job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome" y las variables númericas "age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed"
+
+
+```{r}
+dqr <- data.frame(variable=character(), missings=integer(), errors=integer(), outliers=integer())
+dqr[length(names(df)),]<-0
+dqr$variable <-names(df)
+dqr[,2:4]<-0
+
 dqri <- data.frame(missings=integer(), errors=integer(), outliers=integer())
 
-calcQ <- function(x) {# Declaramos una función para discriminar outliers leves y severos
+calcQ <- function(x) {
   s.x <- summary(x)
   iqr<-s.x[5]-s.x[2]
   list(souti=s.x[2]-3*iqr, mouti=s.x[2]-1.5*iqr, min=s.x[1], q1=s.x[2], q2=s.x[3], 
        q3=s.x[5], max=s.x[6], mouts=s.x[5]+1.5*iqr, souts=s.x[5]+3*iqr ) }
-
-#Separamos variables target/no-target-numéricas/no-target-categóricas (observamos un individuo cualquiera)
 
 df[1,]
 vars_target<-c("duration","y");vars_target
 vars_cat<-c("job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome");vars_cat
 vars_num<-c("age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed");vars_num
 
-
-#Guardamos datos parciales en este punto
-#save.image("data-step-1.RData")
-
 ```
 
+# Step 1: Analisis y exploración de datos
 
-#Step 1: Exploratory Data Analysis
-
-
+  Empezamos con la exploración de datos, verificamos los nombres de las variables, tambien un summary para comprobar que los datos son correctos.
 ```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-step-1.RData", envir = parent.frame(), verbose = FALSE)#cargamos los datos
-
-# Graphics
-names(df)
-# Overview of data frame 
 summary(df)
+```
+## Variables target
+  En primer lugar trataremos las variables target porque de estas se puden desprender errores y outliers que implicaran eliminación de individuos ya que estos errores no pueden imputarse, seria falsificación de la variable target. Tenemos dos variables targets, una categorica y otra númerica, empezamos con la categorica.
 
-#Analizamos variables según si son cat/num o target/no-target (obtenemos 4 clasificaciones)
+### Tratamiento de la variable target Y
+  Hacemos un summary de la variable y podemos ver que los unicos valores que toma es yes o no, de los cuales podemos decir que no hay errores, outliers o missings.
+```{r}
+summary(df$y)
+```
 
-#target+categorica (miramos qué niveles tiene)
+### Tratamiento de la variable númerica target duration
+Vemos que hay valores muy pequeños, incluso 0, tambien valores muy grandes. Miramos distribución
+Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con la función calc fijamos límite soft y fijamos límite extremo, revisamos los 10 valores más extremos de los cuales consideramos que los  últimos 6 son outliers. Hacemos boxplot nuevamente para ver el nuevo resultado el cual almacenamos en nuestro data frame.
+ Luego procedemos a revisar los errores, los cuales consideramos que pueden ser llamadas con una duración inferior a 5 segundos.
+ Tanto errores como outliers son eliminados de la muestra.
+```{r}
+summary(df$duration)
 
-summary(df$y) #solo hay yes/no, por tanto no hay que hacer nada
-
-# Para el data analisis guardamos los missings
-dqr[dqr$variable=='y','missings']<-0
-# Para el data analisis guardamos los outliers
-dqr[dqr$variable=='y','errors']<-0
-# Para el data analisis guardamos los errores
-dqr[dqr$variable=='y','outliers']<-0
-
-
-#target+numerica (miramos qué valores toma)
-
-# Para el data analisis guardamos los missings (no hay)
-dqr[dqr$variable=="duration","missings"]<-sum(is.na(df[,"duration"]))
-
-summary(df$duration)#Vemos que hay valores muy pequeños, incluso 0, tambien de muy grandes.
-hist(df$duration,100) #Miramos distribución
-boxplot(df$duration) #Hacemos boxplot para ver outliers. Solo se contemplan outliers superiores.
+par(mfrow=c(3,1))   
+hist(df$duration,100) 
+boxplot(df$duration) 
 aux<-calcQ(df$duration)
-abline(h=aux[8],col="red",lwd=2) #Fijamos límite soft
-abline(h=aux[9],col="magenta",lwd=2) #Fijamos límite extreme
-aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] #Echamos un ojo a los 10 valores más extremos
-df<-df[-aux[1:6],]#decidimos eliminar los 6 elementos más extremos 
-boxplot(df$duration) #Hacemos boxplot de nuevo
+abline(h=aux[8],col="red",lwd=2) 
+abline(h=aux[9],col="magenta",lwd=2) 
+aux<-order(df$duration,decreasing=TRUE)[1:10];df[aux,'duration'] 
+df<-df[-aux[1:6],]
+boxplot(df$duration) 
+par(mfrow=c(1,1))   
 
-# Para el data analisis guardamos los outliers
+aux<-which(df$duration<5);length(aux);df[aux,'duration'] 
+df<-df[-aux,] 
+
 dqr[dqr$variable=="duration","outliers"]<-6
-
-aux<-which(df$duration<5);length(aux);df[aux,'duration'] # Ahora miramos los que son inferiores a 5s (no puede considerarse llamada. Se considerarán errores)
-df<-df[-aux,] # decidimos eliminarlos todos
-
-# Para el data analisis guardamos los errores
 dqr[dqr$variable=="duration","errors"]<-length(aux)
+
+# Inicializamos el dqri ya que en este punto hemos eliminado todos los individuos que se consideraban como outliers o errores en las variables target.
 dqri[nrow(df),]<-0
 dqri[,]<-0
+```
 
+## No-Target + Categorica
+  Primero realizamos un summary de todas las variables categoricas, para analizar sus valores. En este analisis podemos ver que la variable default tiene una cantidad alta de valores unknows, por lo que nos da indicios de que esta variable no nos será útil. 
+  Vemos que todas los factores con nieveles unknow, menos "default" se pueden considerar como missings, por lo que procedemos a pasar estos valores a NA´s, para esto utilizamos un bucle for. Para evitar realizar el cambio de variables que tengan una cantidad de uknowns mayor a 300, ya que en estos casos debe permanecer como un nivel más, como lo es en el caso de la variable "default".
 
-
-#no-target+categorica
-
+```{r}
 for(i in vars_cat){
   cat("################ ",i," ##################\n")
   print(summary(df[,i]))
-} #Vemos un resumen de los niveles de cada variable categorica
+}
 
-
-for(i in vars_cat){  # Vamos a poner NA's en los unknows
+for(i in vars_cat){
   aux<-which(df[,i]=="unknown")
   if(length(aux)>0 && length(aux)<300){ # Solo si como máximo la variable tiene 300 unknowns (Para filtrar a default)
     cat(i, " -- ", length(aux), "\n")
@@ -174,13 +141,16 @@ for(i in vars_cat){  # Vamos a poner NA's en los unknows
 # Para el data analisis guardamos los missings de las variables categoricas
 for(i in vars_cat){ 
 	dqr[dqr$variable==i,"missings"]<-sum(is.na(df[,i]))
-	dqr[dqr$variable==i,"outliers"]<-0
-	dqr[dqr$variable==i,"errors"]<-0
 }
+```
+Ahora realizamos la imputación de las variables categóricas.
+Contrastamos las summmaries originales e imputados, para comprobar que la imputación se hizo correctamente. Por lo que vemos que todo ha sido correcto y aceptamos estos datos, por lo que procedemos a almacenarlo en nuestro data frame, por seguridad solo sobreescribimos aquellas variables que han sido modificadas.
 
+
+```{r}
 aux2<-imputeMCA(df[,vars_cat],ncp=10)
 
-for(i in vars_cat){ # Contrastamos las imputaciones antes de modificar los datos
+for(i in vars_cat){ 
   cat("################ ",i," ##################\n")
   print(summary(df[,i]))
   print("--- --- --- ---")
@@ -188,36 +158,19 @@ for(i in vars_cat){ # Contrastamos las imputaciones antes de modificar los datos
 }
 
 no_imputadas<-c("poutcome","day_of_week","month","contact","default")
-df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imputadas)] # Aceptamos las imputaciones realizadas, solo guardamos las variables que tenian NA's
-
-# Guardamos los datos en este punto
-#save.image("data-step-2.RData")
+df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imputadas)]
 
 ```
 
-#Step 2: REFACTORIZACIÓN
+# Step 2: REFACTORIZACIÓN
+
+Agrupamos subcategorias en menos categorias. En el resumen anterior de las variables categoricas, podemos ver como reagruparlas.
+En jobs realizamos la agrupación en función del posible ingreso monetario. Finalmente vemos la reagrupación final la cual no ha quedado uniformemente distribuida pero sin embargo, los grupos tienen una relación más significativa.
 
 ```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-step-2.RData", envir = parent.frame(), verbose = FALSE)
-
-# Refactorización (Agrupar subcategorias en menos categorias)
-
-for(i in vars_cat){
-  cat("################ ",i," ##################\n")
-  print(summary(df[,i]))
-}
-
-# preguntar como criterio para las agrupaciones categoricas y en numericas
-
-#Job
+# Job
 
 table(df$job)
-#     admin.   blue-collar  entrepreneur     housemaid    management       retired self-employed     
-#         1296          1156           189           119           351           222           166   
-#    services       student    technician  unemployed 
-#         451           109           817      114 
-# Define new factor categories: 1-Admin 2-Bussines 3-Not working 4-Serv-Tech 5-Blue-Collar
 
 df$f.job <- 4
 # 1 level - Admin-Managment
@@ -236,26 +189,23 @@ df$f.job[aux] <-3
 aux<-which(df$job %in% c("services","technician","blue-collar"))
 df$f.job[aux] <-4
 
-
-summary(df$f.job)
 df$f.job<-factor(df$f.job,levels=1:4,labels=c("Admin-Managment", "Entrep-Retired-selfEmpl", "Not-working", "Serv-Tech-BlueC"))
-levels(df$f.job)<-paste0("f.job.",levels(df$f.job)) # Hacemos las etiquetas más informativas
+levels(df$f.job)<-paste0("f.job.",levels(df$f.job))
 summary(df$f.job)
+```
 
+En months realizamos la agrupación en función de las temporadas aunque no tan estrictamente. 
 
+```{r}
 # Months to groups
-
 table(df$month)
-# apr  aug  dec  jul  jun  mar  may  nov  oct  sep 
-# 321  764   18  865  616   63 1680  513   80   70 
 
-# Define new factor categories: 1- Spring 2-Summer 3-Resta
 df$f.season <- 3
 # 1 level - mar-may 
 aux<-which(df$month %in% c("mar","apr","may"))
 df$f.season[aux] <-1
 
-# 2 level - jun-jul 
+# 2 level - jun-ago
 aux<-which(df$month %in% c("jun","jul","aug"))
 df$f.season[aux] <-2
 
@@ -267,16 +217,14 @@ summary(df$f.season)
 df$f.season<-factor(df$f.season,levels=1:3,labels=c("Mar-May","Jun-Aug","Sep-Dec"))
 levels(df$f.season)<-paste0("f.season.",levels(df$f.season)) # Hacemos las etiquetas más informativas
 summary(df$f.season)
+```
 
+En Education realizamos la agrupación en función del nivel de estudio de cada individuo. Hemos puesto la categoria illiterate dentro de la que consideramos los estudios eran inferiores. Al realizar la agrupación los factoes quedaron realativamente bien equilibrados.
+
+```{r}
 #Education
-
-# education a Season
-
 table(df$education)
-#	basic.4y            basic.6y            basic.9y         high.school          illiterate professional.course   university.degree 
-#	  515                 271                 810                1196                   1                 633                1564
 
-# Define new factor categories: 1-Basic 2-High School 3-Professional
 df$f.education <- 3
 # 1 level - Basic 
 aux<-which(df$education %in% c("illiterate","basic.4y","basic.6y","basic.9y"))
@@ -292,22 +240,15 @@ df$f.education[aux] <-3
 
 table(df$f.education);summary(df$f.education)
 df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School","Professional"))
-
-
-# Guardamos los datos en este punto
-#save.image("data-step-3.RData")
-
 ```
 
+# Step 3: 
+  ## No-Target+Numerica
 
-#Step 3: 
+    ### age
+     Consideramos que no presenta ningún outlier, ya que las edades comprendidas entre 18 y 92 años, son considerados normal.
 ```{r}
-#rm(list=ls())#Limpiamos el workspace
-#load("data-step-3.RData", envir = parent.frame(), verbose = FALSE)
-
-#no-target+numerica: Revisión de cada variable con summary y boxplots
-
-	# age - Consideramos que no presenta ningún outlier  # preguntar si esta bien
+	# age - 
   
   # Para el data analisis guardamos los missings
   dqr[dqr$variable=='age','missings']<-0
