@@ -43,7 +43,7 @@ Establecemos el directorio de trabajo, luego importamos todos los datos del arch
 
 ```{r}
 setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 # Data file alread
 df<-read.table('bank-additional-full.csv',header=TRUE,sep=";")
@@ -57,10 +57,11 @@ llista<-sort(llista)
 df<-df[llista,]
 dim(df)
 #save.image("set-datos.RData")
+load("data-INI.RData")
 ```
 
 # Inicializamos datos y funciones
-Creamos un dataframe que llamamos data quality report "dqr" para almacenar missings, errors, outliers. También creamos uno para los datos individuales "dqri". Inicializamos el "dqr" todo a 0, y el dqri lo Inicializamos a 0 pero despues de eliminar los individuos que nos dan outliers o errores en las variables target.
+Creamos un dataframe que llamamos data quality report "dqr" para almacenar missings, errors, outliers. También creamos uno para los datos individuales "dqri". Inicializamos el "dqr" todo a 0, y el dqri lo inicializamos a 0 pero despues de eliminar los individuos que nos dan outliers o errores en las variables target.
 Declaramos la función calcQ que nos permitirá discriminar los outliers leves y severos en los boxplots.
 Para poder tratar los datos con mayor facilidad separamos las variables en tres grupos, las variables target "duration, y", las variables categoricas "job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome" y las variables númericas "age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed"
 
@@ -103,7 +104,7 @@ summary(df$y)
 ```
 
 ### Tratamiento de la variable númerica target duration
-Vemos que hay valores muy pequeños, incluso 0, tambien valores muy grandes. Miramos distribución
+Vemos que hay valores muy pequeños, incluso 0, tambien valores muy grandes. Miramos distribución en el histograma.
 Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con la función calc fijamos límite soft y fijamos límite extremo, revisamos los 10 valores más extremos de los cuales consideramos que los  últimos 6 son outliers. Hacemos boxplot nuevamente para ver el nuevo resultado el cual almacenamos en nuestro data frame.
  Luego procedemos a revisar los errores, los cuales consideramos que pueden ser llamadas con una duración inferior a 5 segundos.
  Tanto errores como outliers son eliminados de la muestra.
