@@ -478,6 +478,7 @@ catdes(df,21,proba=0.01)
 ```
 
 
+
 En la descripción por categorias catdes nos da la relación que tiene cada categoria con nuestro target yes o no, de los cuales nos vamos a focalizar en los que respondieron yes.
 
 Aquí de nuevo se corrobora lo que ya nos anticipaba el condes, ya que la categoria que contiene la mayor duración de tiempo de las llamadas, es la que esta más relacionada con que el individuo compre el producto.
