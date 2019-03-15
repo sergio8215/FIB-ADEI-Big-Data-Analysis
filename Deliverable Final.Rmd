@@ -68,7 +68,7 @@ Para poder tratar los datos con mayor facilidad separamos las variables en tres 
 
 ```{r}
 dqr <- data.frame(variable=character(), missings=integer(), errors=integer(), outliers=integer())
-dqr[length(names(df)),]<-0
+dqr[length(names(df)),2:4]<-0
 dqr$variable <-names(df)
 dqr[,2:4]<-0
 
@@ -104,7 +104,7 @@ summary(df$y)
 ```
 
 ### Tratamiento de la variable númerica target duration
-Vemos que hay valores muy pequeños, incluso 0, tambien valores muy grandes. Miramos distribución en el histograma.
+Vemos que hay valores muy pequeños, incluso 0, tambien valores muy grandes. Miramos distribución en el histograma. De él se desprende que las llamadas son mayormente de aproximadamente 250 minutos, como ya anticipaba el summary.
 Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con la función calc fijamos límite soft y fijamos límite extremo, revisamos los 10 valores más extremos de los cuales consideramos que los  últimos 6 son outliers. Hacemos boxplot nuevamente para ver el nuevo resultado el cual almacenamos en nuestro data frame.
  Luego procedemos a revisar los errores, los cuales consideramos que pueden ser llamadas con una duración inferior a 5 segundos.
  Tanto errores como outliers son eliminados de la muestra.
@@ -180,7 +180,7 @@ df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imput
 # Step 2: 
 ## Creación de nuevos niveles de los factores
 
-Agrupamos subcategorias en menos categorias. En el resumen anterior de las variables categoricas, podemos ver como reagruparlas.
+Agrupamos subcategorias en menos categorias. El resumen anterior de las variables categoricas nos sirve como referencia para ver como reagruparlas.
 En jobs realizamos la agrupación en función del posible ingreso monetario. Finalmente vemos la reagrupación final la cual no ha quedado uniformemente distribuida pero sin embargo, los grupos tienen una relación más significativa.
 
 ```{r}
@@ -254,8 +254,8 @@ df$f.education[aux] <-2
 aux<-which(df$education %in% c("professional.course","university.degree"))
 df$f.education[aux] <-3
 
-table(df$f.education);summary(df$f.education)
 df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School","Professional"))
+table(df$f.education);
 ```
 
 # Step 3: 
@@ -265,7 +265,7 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
      Consideramos que no presenta ningún outlier, ya que las edades comprendidas entre 18 y 92 años, son considerados normal.
 
     ### campaing
-    Consideramos que en los 10 meses que dura la campaña, un máximo de 20 contactos es aceptable puesto que eso implica una media de un contacto cada 15 días.
+     Para sopesar los outliers consideramos que en los 10 meses que dura la campaña, un máximo de 20 contactos es aceptable puesto que eso implica una media de un contacto cada 15 días. Como errores se han buscado aquellos valores menores a 1 ya que se incluye la presente campaña. No se han detectado errores.
 
 ```{r}
   # campaign
@@ -276,7 +276,7 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
   aux<-calcQ(df$campaign);
   abline(h=aux[8],col="red",lwd=2) 
   abline(h=aux[9],col="magenta",lwd=2) 
-  aux<-which(df$campaign<=0);aux  # Si se incluye el último contacto, este valor no puede ser 0
+  aux<-which(df$campaign<1);aux  # Si se incluye el último contacto, este valor no puede ser 0
   aux<-which(df$campaign>20);length(aux);df[aux,'campaign']
   df[aux,"campaign"]<-NA 
   boxplot(df$campaign)
@@ -289,7 +289,7 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
 ```
 
 ## Verificamos si hay algun error o outlier en pdays  
-Para pdays/previous/outcome creemos que estan relacionadas, por lo que podemos detectar errores si encontramos algún valor nonexistent ó 0 y que no sea 0 ó nonexistent respectivamente y además pdays=999.
+Para pdays/previous/outcome debería existir la relación directa entre previous=0, outcome=nonexistent y pdays=999 por lo que podemos detectar errores.
 Al ver el resultado podemos decir que hay incongruencias entre el pdays y previous, ya que todos los que son pdays = 999, deberian ser previous = nonexistent, lo que en este caso nos dan 527 individuos que no cumplen esta condición. Como suponen más de un 10% de la muestra y nuestro trabajo no es exhaustivo vamos a ignorar esta incongruencia.
 
 ```{r}
@@ -310,7 +310,7 @@ Al ver el resultado podemos decir que hay incongruencias entre el pdays y previo
 ```
 
 ## previous
-  Consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 capañas previas, lo que tiene sentido.
+  Consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 campañas previas, lo que tiene sentido.
   
 ```{r}
   summary(df$previous)#Vemos que gran parte de los valores es 0
@@ -323,7 +323,7 @@ Al ver el resultado podemos decir que hay incongruencias entre el pdays y previo
 ### 
   Para los índices trimestrales/mensuales (emp.var.rate/nr.employed/cons.prize.idx/cons.conf.idx) cabe esperar que tengan los mismos valores para cada mes, si no es que son errores.
   Aparecen muchas discordancias, ya que para cada individo y para un mismo mes el valor debería ser el mismo, en este caso no lo son.
-   Nuestro trabajo no es exhaustivo vamos a ignorar esta incongruencia.
+   Nuestro trabajo no es exhaustivo vamos a ignorar esta incongruencia. A continuación se muestra, para cada variable y para cada mes el número de niveles, que en el caso ideal debería haber un solo nivel.
 
 ```{r}
   aux<-c('emp.var.rate','nr.employed','cons.price.idx','cons.conf.idx')
@@ -348,8 +348,8 @@ Al ver el resultado podemos decir que hay incongruencias entre el pdays y previo
   summary(df$nr.employed)
 ```
 Realizamos la imputación de las variables númericas y comparamos los datos imputados con los originales.
-Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos"
-Igual que en  el caso anterior, solo se sobre escriben las variables imputadas en nuestro df.
+Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos".
+Igual que en  el caso anterior, solo se sobreescriben las variables imputadas en nuestro df.
 
 ```{r}
   vars_num_imp<-imputePCA(df[,vars_num],npc=5)
@@ -380,7 +380,7 @@ summary(df$f.age)
 ```
 ### Duration
   
-  Hemos buscado una distribución más o menos equilibrada y hemos conseguido separarlo en niveles de 2min, 3min,5min, y el resto.
+  Hemos buscado una distribución más o menos equilibrada y hemos conseguido separarlo en niveles de 2min, 3min, 5min, y el resto.
 
 ```{r}
 # Para duration
@@ -398,7 +398,7 @@ summary(df$f.duration)
 ```
 ### Campaign
   Como para esta variable la mayoria de los valores están entre 0 y 1, no se puede hacer la separción por cuartiles.
-  Hemos realizado una factorización manual viendo la cantidad de valores en ca
+  Hemos realizado una factorización manual viendo la cantidad de valores en cada nivel.
 
 ```{r}
 aux<-levels(factor(df$campaign))
@@ -414,7 +414,7 @@ summary(df$f.campaign)
 ```
 
 ### pdays
-Como en pdays hay 4815 valores de 999 que significa que no se han contactado en campañas previas, esto seria un 96% de los individuos por lo que decidimos realizar la agrupación en solo dos niveles.
+Como en pdays hay 4815 valores de 999 que significa que no se han contactado en campañas previas, esto seria un 96% de los individuos por lo que decidimos realizar la agrupación en solo dos niveles, contactados y no-contactados.
 
 ```{r}
 aux2<-c(0,998,999) 
