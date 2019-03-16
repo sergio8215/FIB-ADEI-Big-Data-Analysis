@@ -285,7 +285,7 @@ Para sopesar los outliers consideramos que en los 10 meses que dura la campaña, 
   # Para el data analisis guardamos los missings
   dqr[dqr$variable=='campaing','missings']<-sum(is.na(df[,"campaign"]))
   # Para los individuales
-  dqri[aux,'outliers']<-dqri[aux,'outliers']+1
+  dqri[aux,'missings']<-dqri[aux,'missings']+1
 ```
 
 ### Verificamos si hay inconsistencias en pdays/previous/poutcome  
@@ -361,6 +361,27 @@ Igual que en  el caso anterior, solo se sobreescriben las variables imputadas en
   aux<-c('previous','campaign')
   df[,aux]<-round(df[,aux])
 ```
+
+## Resumen del data quality report y Ranking
+
+A continuación se muestra el ranking de missings, errors y outliers para cada variable que tiene por lo menos algún missing, error o outlier. Vemos que el valor más destacable, los missings de education, no alcanza el 5% de la muestra.
+
+```{r}
+aux<-which(dqr$missings>0 | dqr$errors>0 | dqr$outliers>0)
+dqr_subset<-dqr[aux,]
+dqr_subset[order(-dqr_subset$missings),]
+dqr[dqr$variable=="education",'missings']/nrow(df)
+```
+
+Para el data quality report de individuales cabe destacar que se han ignorado errores y ouliers de la variable target duration, pues estos individuos se han eliminado resultando una muestra de 4990. Dicho esto, y viendo los resultados anteriores, bastará con supervisar los missings individuales. El summary revela poca incidencia con un escaso 0.1 missings de media, pero sí vemos que hay individuos con hasta 3 missings. Con prop.table se observa un 5% de la muestra con 1 missing, un 2,5% con dos y un 0,24% con tres. Lo consideramos valores razonables. 
+
+```{r}
+summary(dqri$missings)
+prop.table(table(dqri$missings))
+
+```
+
+
 # Step 4:
 ## Crear factores adicionales para cada variable cuantitativa
   ### Age
