@@ -22,7 +22,6 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Loading packages
 
 ```{r, include=FALSE}
 # Load Required Packages: to be increased over the course
@@ -36,13 +35,13 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 ```
 
-# Loading data
+#Preparación de la muestra
 
-Establecemos el directorio de trabajo, luego importamos todos los datos del archivo csv bank-additional-full y establecemos una semilla para obtener siempre la misma muestra "aleatoria". Obtenemos 5000 individuos que se usarán para el análisis a lo largo de toda la asignatura.
+Establecemos el directorio de trabajo, luego importamos todos los datos del archivo csv bank-additional-full y establecemos una semilla para obtener siempre la misma muestra "aleatoria". Obtenemos 5000 individuos que se usarán para el análisis a lo largo de toda la asignatura. Partimos siempre del mismo fichero, data-INI.RData, para asegurarnos que se usa siempre la misma muestra ya generada.
 
 
 ```{r}
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 # Data file alread
@@ -61,9 +60,9 @@ load("data-INI.RData")
 ```
 
 # Inicializamos datos y funciones
-Creamos un dataframe que llamamos data quality report "dqr" para almacenar missings, errors, outliers. También creamos uno para los datos individuales "dqri". Inicializamos el "dqr" todo a 0, y el dqri lo inicializamos a 0 pero despues de eliminar los individuos que nos dan outliers o errores en las variables target.
+Creamos un dataframe que llamamos data quality report "dqr" para almacenar missings, errors, outliers. También creamos uno para los datos individuales "dqri". Inicializamos el "dqr" todo a 0, y el dqri lo inicializamos a 0 pero después de eliminar los individuos que nos dan outliers o errores en las variables target.
 Declaramos la función calcQ que nos permitirá discriminar los outliers leves y severos en los boxplots.
-Para poder tratar los datos con mayor facilidad separamos las variables en tres grupos, las variables target "duration, y", las variables categoricas "job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome" y las variables númericas "age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed"
+Para poder tratar los datos con mayor facilidad separamos las variables en tres grupos, las variables target "duration, y", las variables categóricas "job", "marital", "education", "default", "housing", "loan", "contact", "month", "day_of_week", "poutcome" y las variables númericas "age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed"
 
 
 ```{r}
@@ -87,23 +86,22 @@ vars_num<-c("age", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.
 
 ```
 
-# Step 1:
-## Analisis y exploración de datos
+#Análisis y exploración de datos
 
   Empezamos con la exploración de datos, verificamos los nombres de las variables, también un summary para comprobar que los datos son correctos.
 ```{r}
 summary(df)
 ```
-## Variables target
-  En primer lugar trataremos las variables target porque de estas se puden desprender errores y outliers que implicarán eliminación de individuos ya que estos errores no pueden imputarse, sería falsificación de la variable target. Tenemos dos variables targets, una categórica y otra númerica, empezamos con la categórica.
+##Tratamiento de las Variables target
+  En primer lugar trataremos las variables target porque de estas se pueden desprender errores y outliers que implicarán eliminación de individuos ya que estos errores no pueden imputarse, sería falsificación de la variable target. Tenemos dos variables targets, una categórica y otra numérica, empezamos con la categórica.
 
-### Tratamiento de la variable target Y
+###Y
   Hacemos un summary de la variable y podemos ver que los únicos valores que toma es yes o no, de los cuales podemos decir que no hay errores, outliers o missings.
 ```{r}
 summary(df$y)
 ```
 
-### Tratamiento de la variable númerica target duration
+###Duration
 Vemos que hay valores muy pequeños, incluso 0, también valores muy grandes. Miramos distribución en el histograma. De él se desprende que las llamadas son mayormente de aproximadamente 250 minutos, como ya anticipaba el summary.
 Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con la función calcQ que fija límite soft y extremo. Detectar outliers aplicando el linde proporcionado por calcQ echaría a perder la muestra, así que mejor se revisan los 10 valores más extremos y vemos que los últimos 6 abarcan un intervalo superior de duración al resto de la muestra, es decir, 4994 individuos están en el intervalo [0,2078] mientras que estos 6 abarcan un intervalo más extenso, [2079,4199]. Hacemos boxplot nuevamente para ver el resultado el cual almacenamos en nuestro data frame.
  Luego procedemos a revisar los errores, los cuales consideramos que pueden ser llamadas con una duración inferior a 5 segundos.
@@ -133,9 +131,10 @@ dqri[nrow(df),]<-0
 dqri[,]<-0
 ```
 
-## No-Target + Categórica
+##Tratamiento de variables no-Target Categóricas
+###Análisis de errores y missings
   Primero realizamos un summary de todas las variables categóricas, para analizar sus valores. En este análisis podemos ver que la variable default tiene una cantidad alta de valores unknows, por lo que nos da indicios de que esta variable no nos será útil. 
-  Vemos que todas los factores con nieveles unknow, menos "default" se pueden considerar como missings, por lo que procedemos a pasar estos valores a NA´s, para esto utilizamos un bucle for. Para evitar realizar el cambio de variables que tengan una cantidad de uknowns mayor a 300, ya que en estos casos debe permanecer como un nivel más, como lo es en el caso de la variable "default".
+  Vemos que todas los factores con niveles unknow, menos "default" se pueden considerar como missings, por lo que procedemos a pasar estos valores a NA´s, para esto utilizamos un bucle for. Para evitar realizar el cambio de variables que tengan una cantidad de uknowns mayor a 300, ya que en estos casos debe permanecer como un nivel más, como lo es en el caso de la variable "default".
 
 ```{r}
 for(i in vars_cat){
@@ -159,7 +158,7 @@ for(i in vars_cat){
 }
 ```
 Ahora realizamos la imputación de las variables categóricas.
-Contrastamos los summmaries originales e imputados, para comprobar que la imputación se hizo correctamente. Vemos que todo ha sido correcto y aceptamos estos datos, por lo que procedemos a almacenarlo en nuestro data frame que, por seguridad, solo sobreescribimos aquellas variables que han sido modificadas.
+Contrastamos los summmaries originales e imputados, para comprobar que la imputación se hizo correctamente. Vemos que todo ha sido correcto y aceptamos estos datos, por lo que procedemos a almacenarlo en nuestro data frame que, por seguridad, solo sobrescribimos aquellas variables que han sido modificadas.
 
 
 ```{r}
@@ -177,8 +176,7 @@ df[,setdiff(vars_cat,no_imputadas)]<-aux2$completeObs[,setdiff(vars_cat,no_imput
 
 ```
 
-# Step 2: 
-## Creación de nuevos niveles de los factores
+###Creación de nuevos niveles de los factores
 
 Agrupamos subcategorías en menos categorías. El resumen anterior de las variables categóricas nos sirve como referencia para ver como reagruparlas.
 En jobs realizamos la agrupación en función del posible ingreso monetario. Finalmente vemos la reagrupación final la cual no ha quedado uniformemente distribuida, sin embargo los grupos tienen una relación más significativa.
@@ -235,7 +233,7 @@ levels(df$f.season)<-paste0("f.season.",levels(df$f.season)) # Hacemos las etiqu
 summary(df$f.season)
 ```
 
-En Education realizamos la agrupación en función del nivel de estudios de cada individuo. Hemos puesto la categoría illiterate dentro de la que consideramos que el nivel de estudios es inferior. Al realizar la agrupación los niveles quedaron realativamente bien equilibrados.
+En Education realizamos la agrupación en función del nivel de estudios de cada individuo. Hemos puesto la categoría illiterate dentro de la que consideramos que el nivel de estudios es inferior. Al realizar la agrupación los niveles quedaron relativamente bien equilibrados.
 
 ```{r}
 #Education
@@ -258,13 +256,12 @@ df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School",
 table(df$f.education);
 ```
 
-# Step 3: 
-  ## No-Target y Numérica
+##Tratamiento de variables no-Target Numéricas
 
-    ### age
+###Age
 Consideramos que no presenta ningún outlier, ya que las edades comprendidas entre 18 y 92 años, son considerados normal.
 
-    ### campaing
+###Campaing
 Para sopesar los outliers consideramos que en los 10 meses que dura la campaña, un máximo de 20 contactos es aceptable puesto que eso implica una media de un contacto cada 15 días. Como errores se han buscado aquellos valores menores a 1 ya que se incluye la presente campaña. No se han detectado errores.
 
 ```{r}
@@ -288,9 +285,9 @@ Para sopesar los outliers consideramos que en los 10 meses que dura la campaña, 
   dqri[aux,'missings']<-dqri[aux,'missings']+1
 ```
 
-### Verificamos si hay inconsistencias en pdays/previous/poutcome  
+###Verificación de inconsistencias en pdays/previous/poutcome  
 Para pdays/previous/poutcome debería existir la relación directa entre previous=0, outcome=nonexistent y pdays=999 por lo que podemos detectar errores.
-Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previous, ya que todos los que son pdays = 999, deberian ser previous = nonexistent, lo que en este caso nos dan 526 individuos que no cumplen esta condición. Como suponen más de un 10% de la muestra y nuestro trabajo no es exhaustivo vamos a ignorarlo.
+Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previous, ya que todos los que son pdays = 999, deberían ser previous = nonexistent, lo que en este caso nos dan 526 individuos que no cumplen esta condición. Como suponen más de un 10% de la muestra y nuestro trabajo no es exhaustivo vamos a ignorarlo.
 
 ```{r}
   rel_pdays<-which(df$pdays==999)
@@ -302,14 +299,14 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
   length(setdiff(rel_pdays,    rel_previous)) 
   summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')]) # Miramos el perfil de esos individuos
 ```
-### pdays
+###Pdays
   Con el summary podemos ver que no tenemos outliers ni errores, tampoco missings.
 
 ```{r}
   summary(df$pdays)
 ```
 
-## previous
+###Previous
   Consideramos que para esta variable no hay outliers, ya que por los valores se ve que pueden haber sido contactado hasta en 6 campañas previas, lo que tiene sentido.
   
 ```{r}
@@ -320,9 +317,9 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
   par(mfrow=c(1,1)) 
 ```
 
-### Comprobamos inconsistencias en los índices trimestrales/mensuales
+###Comprobación de inconsistencias en los índices trimestrales/mensuales
   Para los índices trimestrales/mensuales (emp.var.rate/nr.employed/cons.prize.idx/cons.conf.idx) cabe esperar que tengan los mismos valores para cada mes, de lo contrario pueden considerarse errores.
-  Aparecen muchas discordancias, ya que para cada individo y para un mismo mes el valor debería ser el mismo y en este caso no lo son.
+  Aparecen muchas discordancias, ya que para cada individuo y para un mismo mes el valor debería ser el mismo y en este caso no lo son.
    Nuestro trabajo no es exhaustivo, así que vamos a ignorar esta inconsistencia. A continuación se muestra, para cada variable y para cada mes el número de niveles, que en el caso ideal debería haber un solo nivel.
 
 ```{r}
@@ -336,8 +333,8 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
     }
   }
 ```
-### Emp.var.rate,cons.price.idx, cons.conf.idx, euribor3m, nr.employed
-  Necesitamos saber como se han optenido estos datos para poder validarlos, como no tenemos esa información solo podemos comprobar los missings values.
+###Emp.var.rate,cons.price.idx, cons.conf.idx, euribor3m, nr.employed
+  Necesitamos saber cómo se han obtenido estos datos para poder validarlos, como no tenemos esa información solo podemos comprobar los missings values.
   En este caso al hacer summary de cada variable, podemos ver que no existen missings.
 
 ```{r}
@@ -347,9 +344,9 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
   summary(df$euribor3m)
   summary(df$nr.employed)
 ```
-Realizamos la imputación de las variables númericas y comparamos los datos imputados con los originales.
+Realizamos la imputación de las variables numéricas y comparamos los datos imputados con los originales.
 Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos" de las variables 'previous' y 'campaign'.
-Igual que en  el caso anterior, solo se sobreescriben las variables imputadas en nuestro df.
+Igual que en  el caso anterior, solo se sobrescriben las variables imputadas en nuestro df.
 
 ```{r}
   vars_num_imp<-imputePCA(df[,vars_num],npc=5)
@@ -362,7 +359,7 @@ Igual que en  el caso anterior, solo se sobreescriben las variables imputadas en
   df[,aux]<-round(df[,aux])
 ```
 
-## Resumen del data quality report y Ranking
+##Resumen del Data Quality Report y Ranking
 
 A continuación se muestra el ranking de missings, errors y outliers para cada variable que tiene por lo menos algún missing, error o outlier. Vemos que el valor más destacable, los missings de education, no alcanza el 5% de la muestra.
 
@@ -382,9 +379,8 @@ prop.table(table(dqri$missings))
 ```
 
 
-# Step 4:
-## Crear factores adicionales para cada variable cuantitativa
-  ### Age
+##Creación de factores adicionales para cada variable cuantitativa
+###Age
   Primero miramos cuan distribuidos quedan aplicando unos cortes según los cuartiles, como estos no difieren demasiado con los niveles naturales (20 añeros, 30 añeros...) preferimos quedarnos con los niveles naturales.
 ```{r}
 aux<-quantile(df$age,seq(0,1,0.25),na.rm=TRUE) # Niveles por quartiles
@@ -399,7 +395,7 @@ df$f.age<-factor(cut(df$age,breaks=aux2,include.lowest=T))
 levels(df$f.age)<-paste0("f.age-",levels(df$f.age))
 summary(df$f.age)
 ```
-### Duration
+###Duration
   
   Hemos buscado una distribución más o menos equilibrada y hemos conseguido separarlo en niveles de 2min, 3min, 5min, y el resto.
 
@@ -417,8 +413,8 @@ df$f.duration<-factor(cut(df$duration,breaks=aux2,include.lowest=T))#Nos quedamo
 levels(df$f.duration)<-paste0("f.duration-",levels(df$f.duration))#Hacemos las etiquetas más informativas
 summary(df$f.duration)
 ```
-### Campaign
-  Como para esta variable la mayoría de los valores están entre 0 y 1, no se puede hacer la separción por cuartiles.
+###Campaign
+  Como para esta variable la mayoría de los valores están entre 0 y 1, no se puede hacer la separación por cuartiles.
   Hemos realizado una factorización manual viendo la cantidad de valores en cada nivel.
 
 ```{r}
@@ -434,8 +430,8 @@ levels(df$f.campaign)<-paste0("f.campaign-",levels(df$f.campaign))
 summary(df$f.campaign)
 ```
 
-### pdays
-Como en pdays hay 4815 valores de 999 que significa que no se han contactado en campañas previas, esto seria un 96% de los individuos por lo que decidimos realizar la agrupación en solo dos niveles, contactados y no-contactados.
+###Pdays
+Como en pdays hay 4815 valores de 999 que significa que no se han contactado en campañas previas, esto sería un 96% de los individuos por lo que decidimos realizar la agrupación en solo dos niveles, contactados y no-contactados.
 
 ```{r}
 aux2<-c(0,998,999) 
@@ -447,7 +443,7 @@ levels(df$f.pdays)<-paste0("f.pdays-",levels(df$f.pdays))
 summary(df$f.pdays)
 ```
 
-### previous 
+###Previous 
 Vemos que esta variable solo tiene 6 niveles por lo decidimos pasarlos a los tres niveles más relevantes, sin que sea binaria. Ya que pensamos que el grupo de individuos con un solo contacto en una campaña previa podría ser significativo con respecto a la variable target Y.
 
 ```{r}
@@ -460,34 +456,40 @@ levels(df$f.previous)<-paste0("f.previous-",levels(df$f.previous))
 summary(df$f.previous)
 ```
 
-# Step 5:
-## Profiling
+##Profiling
+###Nombres de niveles más informativos
   Para poder hacer profiling, necesitamos darle nombres a los subniveles de los factores, para esto hacemos un bucle que recorre cada variable categórica y le añade el nombre de la variable más un "." y el nombre del nivel.
-Luego procedemos a ejecutar la función condes con la variable target duration, la cual se encuentra en la posición 11 de nuestro data frame. Usamos una probabilidad de 0.01 que consideramos puede mostrarnos el resultado que queremos. Para la función catdes usamos la variable "Y" la cual se encuenta en la posición 21 de nuestro data frame.
+Luego procedemos a ejecutar la función condes con la variable target duration, la cual se encuentra en la posición 11 de nuestro data frame. Usamos una probabilidad de 0.01 que consideramos puede mostrarnos el resultado que queremos. Para la función catdes usamos la variable "Y" la cual se encuentra en la posición 21 de nuestro data frame.
 
 ```{r}
 vars_cat_con_y<-c(vars_cat,"y")
 for (i in vars_cat_con_y){
   levels(df[,i])<-paste0(i,".",levels(df[,i]))
 }
+```
+
+###Resultado del CONDES
+```{r}
 condes(df,11,proba=0.01)
 tapply(df$duration,df$f.dur,mean)
 summary(df$duration)
 tapply(df$duration,df$y,mean)
+
 ```
 
 En el resultado de la correlación cuantitativa, podemos ver que la única variable posiblemente relacionada es campaing.
-Campaing aún estando inversamente relacionada con duration, su correlación es muy pequeña pues no llega al 6%. Traducido al lenguaje natural podemos decir: "hay indicios de que cuantas más campañas ha participado el individuo más corta será la duración de la llamada".
+Campaing aun estando inversamente relacionada con duration, su correlación es muy pequeña pues no llega al 6%. Traducido al lenguaje natural podemos decir: "hay indicios de que cuantas más campañas ha participado el individuo más corta será la duración de la llamada".
 Además el pvalor nos indica que la probabilidad de que la correlación sea cero, es muy baja, tanto es así que nos da cierta confianza de que la correlación indicada es la real.
 
 Para las variables cualitativas, podemos ver que los factores de duration están muy relacionados lo cual tiene total sentido ya que se está comparando con ella misma.
 Para la variable Y, podemos ver que hay una relación con duration aunque 0.177 comparado con 1 es aparentemente poco, en este tipo de estudios es una relación relevante que cabe destacar. Además el pvalor es casi nulo, que nos da mucha confianza sobre este indicador.
 Para f.campaing y month, presentan ciertos indicios de relación pero con pvalores bastante ajustados.
 
-Mirando el análisis por categorías que nos muestra condes, vemos en primer lugar que el f.duration con intervalo entre (300,2.1e+03] tiene una media estimada de 310 segundos sobre la media global lo cual no deja de ser una obviedad. Sin embargo, si nos fijamos en el y.yes podemos ver que los individuos estan 170 segundos por encima de la media global, cosa que viene apoyada por la confianza de un pvalor casi nulo. Con esto podemos decir que los individuos propensos a comprar el producto, resulta que duran más tiempo al teléfono. Sin más información sobre el proceso de contacto en las campañas, nos hace pensar que puede ser por el hecho de que al comprar el producto, estos individuos deben permanecer más tiempo para poder dar todos sus datos.
+Mirando el análisis por categorías que nos muestra condes, vemos en primer lugar que el f.duration con intervalo entre (300,2.1e+03] tiene una media estimada de 310 segundos sobre la media global lo cual no deja de ser una obviedad. Sin embargo, si nos fijamos en el y.yes podemos ver que los individuos están 170 segundos por encima de la media global, cosa que viene apoyada por la confianza de un pvalor casi nulo. Con esto podemos decir que los individuos propensos a comprar el producto, resulta que duran más tiempo al teléfono. Sin más información sobre el proceso de contacto en las campañas, nos hace pensar que puede ser por el hecho de que al comprar el producto, estos individuos deben permanecer más tiempo para poder dar todos sus datos.
   
 Si comparamos los meses de abril y agosto podemos ver que en abril, los individuos duran un poco más de tiempo al teléfono respecto a la media, y esto, asumiendo lo anteriormente dicho, puede que sea un mes más propenso a la venta del producto. En cambio en el mes de agosto estos duraron menos tiempo al teléfono, podemos intuir que puede ser debido a las vacaciones.
 
+###Resultado del CATDES
 
 ```{r}
 prop.table(table(df$y)) # y
@@ -497,8 +499,6 @@ prop.table(table(df$f.duration,df$y),2)
 catdes(df,21,proba=0.01)
 ```
 
-
-
 En la descripción por categorías catdes nos da la relación que tiene cada categoría con nuestro target yes o no, de los cuales nos vamos a focalizar en los que respondieron yes.
 
 Aquí de nuevo se corrobora lo que ya nos anticipaba el condes, ya que la categoría que contiene la mayor duración de tiempo de las llamadas, es la que esta más relacionada con que el individuo compre el producto.
@@ -507,16 +507,16 @@ Esto lo interpretamos de la columna Mod/Cla en la cual aquellos que compraron el
 
 De la categoría de poutcome, podemos ver que aquellos que aceptaron en una campaña previa el producto, aceptarán con una probabilidad de un 66% el producto de esta campaña. Esto apoya la tesis que pregona el marketing: "Si el individuo ya es cliente de la empresa esto le da confianza para comprar de nuevo".
 
-En la misma línea nos indica la categoria f.pdays[0,988] que a fin de cuentas tiene el mismo significado que el poutcome y que previous, salvo como hemos visto en el anterior análisis hay ciertos individuos de pdays que no son consistentes con el poutcome.
+En la misma línea nos indica la categoría f.pdays[0,988] que a fin de cuentas tiene el mismo significado que el poutcome y que previous, salvo como hemos visto en el anterior análisis hay ciertos individuos de pdays que no son consistentes con el poutcome.
 
-Otro valor que nos llama la atención es el que da la categoria job, en su nivel retired, podemos ver que un 28% aceptó el producto, lo que es un buen indicador de que este es un tipo de individuo de interés.
+Otro valor que nos llama la atención es el que da la categoría job, en su nivel retired, podemos ver que un 28% aceptó el producto, lo que es un buen indicador de que este es un tipo de individuo de interés.
 
 En los meses de marzo y octubre, vemos un incremento relevante en las ventas, aunque vemos que estos meses son una muestra poco representativa de nuestra muestra (esto lo podemos ver en la columna global, donde estos meses tienen un valor inferior al 1.7% del total de individuos) lo que nos puede decir que no son valores muy representativos.
 En cambio para el mes de abril podemos ver que es una muestra mayor, con un 6% con respecto a la muestra global, de este porcentaje casi un 20% aceptó el producto, lo cual nos puede indicar, que sea un mes más propenso a la aceptación del mismo.
 
 Además parece ser que la franja de edad más propensa a la compra corresponde al intervalo de más larga edad que es de mayores de 50 años.
 
-Despues de analizar estos datos, podemos crear algunos perfiles que pueden ser propensos a aceptar futuros productos.
+Después de analizar estos datos, podemos crear algunos perfiles que pueden ser propensos a aceptar futuros productos.
 
 ###Perfil de persona más propensa a que acepte el producto:
 
