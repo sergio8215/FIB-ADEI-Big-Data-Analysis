@@ -1,0 +1,89 @@
+---
+title: "Deliverable 2"
+author: "Guillem Valls, Sergio Mazzariol"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+# Load Required Packages: to be increased over the course
+
+requiredPackages <- c("mvoutlier","chemometrics","mice","missForest","missMDA","DMwR","pbkrtest","jomo","readxl","haven","sf","rgdal","missMDA","effects","FactoMineR","car","factoextra","RColorBrewer","ggplot2","dplyr","data.table", "ggmap","ggthemes","knitr","MVA")
+missingPackages <- requiredPackages[!(requiredPackages %in% as.vector(installed.packages(lib.loc="~/R/win-library/3.5")[,"Package"]))]
+
+if(length(missingPackages)) install.packages(missingPackages)
+lapply(requiredPackages, require, character.only = TRUE)
+
+```
+
+
+```{r include=FALSE}
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+
+load("data-INI2.RData")
+```
+
+
+####################  ENUNCIADO  ###########################
+PCA analysis for your data should contain:
+
+    Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
+    Individuals point of view: Are they any individuals "too contributive"? To better understand the axes meaning use the extreme individuals. Detection of multivariant outliers and influent data.
+    Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
+    Perform a PCA taking into account also supplementary variables the supplementary variables can be quantitative and/or categorical  
+
+####################  FIN ENUNCIADO  #######################
+#Análisis PCA
+```{r}
+
+
+```
+
+
+####################  ENUNCIADO  ###########################
+K-Means Classification
+
+    Description of clusters
+
+Hierarchical Clustering
+
+    Description of clusters
+
+CA analysis for your data should contain your factor version of the numeric target (previous) in K= 7 (maximum 10) levels and 2 factors:
+
+    Eigenvalues and dominant axes analysis. How many axes we have to consider
+    Are there any row categories that can be combined/avoided to explain Duration target.
+
+ MCA analysis for your data should contain:
+
+    Eigenvalues and dominant axes analysis. How many axes we have to consider for next Hierarchical Classification stage?
+    Individuals point of view: Are they any individuals "too contributive"? Are there any groups?
+    Interpreting map of categories: average profile versus extreme profiles (rare categories)
+    Interpreting the axes association to factor map.
+    Perform a MCA taking into account also supplementary variables (use all numeric variables) quantitative and/or categorical. How supplementary variables enhance the axis interpretation?
+
+ Hierarchical Clustering (from MCA)
+
+    Description of clusters
+    Parangons and class-specific individuals.
+    Comparison of clusters obtained after K-Means (based on PCA) and/or Hierarchical Clustering (based on PCA) focusing on Duration target.
+    Comparison of clusters obtained after K-Means (based on PCA) and/or Hierarchical Clustering (based on PCA) focusing on the binary target.
+####################  FIN ENUNCIADO  #######################

@@ -526,3 +526,9 @@ Después de analizar estos datos, podemos crear algunos perfiles que pueden ser p
 ###Perfil de llamada más propensa a que se acepte el producto:
 
 1- Abril, duración larga (más de 300 segundos) y hechas a un móvil.
+
+```{r}
+#Guardamos los datos para empezar el Deliverable2
+#save(list=c('df','vars_num','vars_cat'),file='data-INI2.RData')
+```
+
