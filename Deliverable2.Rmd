@@ -75,7 +75,20 @@ cor(df[,vars_num])[1,]
 ```{r}
 eigens<-eigen(Z)
 t(eigens$vectors)%*%eigens$vectors
-res.pca<-PCA(df[,vars_num])
+res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1)#Hay que poner como suplemenmtaria la variable target. Convé treure pdays ja que té molts missings
+#La flecha pequeña de duration significa que poco se podrá relacionar el resto de variables con el target duration. Conviene poner pdays en max+1 en lugar de 999
+
+res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1,axes=3:4)#para ver ejes 3 y 4
+
+summary(res.pca,ncp=4,nb.dec=2)
+#Eigenvalues
+#                      Dim.1  Dim.2  Dim.3  Dim.4  Dim.5  Dim.6  Dim.7  Dim.8  Dim.9
+#Variance               3.88   1.36   1.11   0.97   0.83   0.43   0.38   0.02   0.01
+#% of var.             43.15  15.17  12.32  10.74   9.25   4.75   4.25   0.27   0.12
+#Cumulative % of var.  43.15  58.31  70.63  81.37  90.62  95.37  99.62  99.88 100.00
+
+#Por el criterio de kaiser cogeríamos las primeras 3 variables, ya que son mayores que 1. Vemos que la dimensiíon 1 vale por 3.88 variables de información
+#miramos de cumplir los tres criterios, el de kaiser, el del 80% y otro que no me acuerdo.
 ```
 
 
