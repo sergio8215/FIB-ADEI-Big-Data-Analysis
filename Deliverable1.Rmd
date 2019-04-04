@@ -102,7 +102,7 @@ summary(df$y)
 ```
 
 ###Duration
-Vemos que hay valores muy pequeños, incluso 0, también valores muy grandes. Miramos distribución en el histograma. De él se desprende que las llamadas son mayormente de aproximadamente 250 minutos, como ya anticipaba el summary.
+Vemos que hay valores muy pequeños, incluso 0, también valores muy grandes. Miramos distribución en el histograma. De él se desprende que las llamadas son mayormente de aproximadamente 250 segundos, como ya anticipaba el summary.
 Hacemos boxplot para ver outliers y solo se contemplan outliers superiores con la función calcQ que fija límite soft y extremo. Detectar outliers aplicando el linde proporcionado por calcQ echaría a perder la muestra, así que mejor se revisan los 10 valores más extremos y vemos que los últimos 6 abarcan un intervalo superior de duración al resto de la muestra, es decir, 4994 individuos están en el intervalo [0,2078] mientras que estos 6 abarcan un intervalo más extenso, [2079,4199]. Hacemos boxplot nuevamente para ver el resultado el cual almacenamos en nuestro data frame.
  Luego procedemos a revisar los errores, los cuales consideramos que pueden ser llamadas con una duración inferior a 5 segundos.
  Tanto errores como outliers son eliminados de la muestra.
@@ -134,7 +134,7 @@ dqri[,]<-0
 ##Tratamiento de variables no-Target Categóricas
 ###Análisis de errores y missings
   Primero realizamos un summary de todas las variables categóricas, para analizar sus valores. En este análisis podemos ver que la variable default tiene una cantidad alta de valores unknows, por lo que nos da indicios de que esta variable no nos será útil. 
-  Vemos que todas los factores con niveles unknow, menos "default" se pueden considerar como missings, por lo que procedemos a pasar estos valores a NA´s, para esto utilizamos un bucle for. Para evitar realizar el cambio de variables que tengan una cantidad de uknowns mayor a 300, ya que en estos casos debe permanecer como un nivel más, como lo es en el caso de la variable "default".
+  Vemos que todas los factores con niveles unknow, menos "default" se pueden considerar como missings, por lo que procedemos a pasar estos valores a NA´s, para esto utilizamos un bucle for. Para evitar realizar el cambio de variables que tengan una cantidad de uknowns mayor a 300, ya que en estos casos debe permanecer como un nivel más, como lo es en el caso de la variable "default". Además vemos que alguna categoría tiene muy pocos individuos, como por ejemplo "illiterate" en education. Preservamos este nivel ya que, como se verá más adelante, al crear nuevos factores de cada variable este nivel será añadido en uno más general.
 
 ```{r}
 for(i in vars_cat){
@@ -245,11 +245,11 @@ aux<-which(df$education %in% c("illiterate","basic.4y","basic.6y","basic.9y"))
 df$f.education[aux] <-1
 
 # 2 level - Higb School 
-aux<-which(df$education %in% c("high.school"))
+aux<-which(df$education %in% c("professional.course","high.school"))
 df$f.education[aux] <-2
 
 # 3 level - Professional
-aux<-which(df$education %in% c("professional.course","university.degree"))
+aux<-which(df$education %in% c("university.degree"))
 df$f.education[aux] <-3
 
 df$f.education<-factor(df$f.education,levels=1:3,labels=c("Basic","High School","Professional"))
@@ -300,10 +300,14 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
   summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')]) # Miramos el perfil de esos individuos
 ```
 ###Pdays
-  Con el summary podemos ver que no tenemos outliers ni errores, tampoco missings.
+  Con el summary podemos ver que no tenemos outliers ni errores, tampoco missings. Sin embargo, debemos tratar los valores 999 con significado especial "nunca fueron contactados" por un valor que no desvirtue los demás. En ese sentido se ha optado por asignarles el máximo más 1.
 
 ```{r}
   summary(df$pdays)
+  sel<-which(df$pdays!=999)
+  value<-max(df$pdays[sel])
+  sel<-which(df$pdays==999)
+  
 ```
 
 ###Previous
