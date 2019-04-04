@@ -300,14 +300,15 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
   summary(df[setdiff(rel_pdays,rel_previous),c('previous','poutcome')]) # Miramos el perfil de esos individuos
 ```
 ###Pdays
-  Con el summary podemos ver que no tenemos outliers ni errores, tampoco missings. Sin embargo, debemos tratar los valores 999 con significado especial "nunca fueron contactados" por un valor que no desvirtue los demás. En ese sentido se ha optado por asignarles el máximo más 1.
+  Con el summary podemos ver que no tenemos outliers ni errores, tampoco missings. Sin embargo, debemos tratar los valores 999 con significado especial "nunca fueron contactados" por un valor que no desvirtue los demás. En ese sentido se ha optado por asignarles el máximo (evidentemente ignorando los 999) más 1.
 
 ```{r}
   summary(df$pdays)
   sel<-which(df$pdays!=999)
   value<-max(df$pdays[sel])
   sel<-which(df$pdays==999)
-  
+  df$pdays[sel]<-value+1
+  summary(df$pdays)
 ```
 
 ###Previous
@@ -348,15 +349,30 @@ Al ver el resultado podemos decir que hay inconsistencias entre el pdays y previ
   summary(df$euribor3m)
   summary(df$nr.employed)
 ```
+
 Realizamos la imputación de las variables numéricas y comparamos los datos imputados con los originales.
-Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos" de las variables 'previous' y 'campaign'.
-Igual que en  el caso anterior, solo se sobrescriben las variables imputadas en nuestro df.
 
 ```{r}
   vars_num_imp<-imputePCA(df[,vars_num],npc=5)
   
   summary(df[,vars_num])
   summary(vars_num_imp$completeObs)
+  
+```
+
+Contrastamos también los boxplot para cada variable.
+```{r}
+  for(i in vars_num){
+    par(mfrow=c(1,2))
+    boxplot(df[,i], main=paste0(i," original"));
+    boxplot(vars_num_imp$completeObs[,i], main=paste0(i," imputado"))
+    par(mfrow=c(1,1))
+  }
+```
+
+Observamos que da valores razonados, solamente que debemos redondearlos en ambos casos ya que se trata de "número de contactos" de las variables 'previous' y 'campaign'. Igual que en  el caso anterior, solo se sobrescriben las variables imputadas en nuestro df. Contrastamos los summaries originales con los imputados.
+
+```{r}
   
   df[,vars_num]<-vars_num_imp$completeObs[,vars_num]
   aux<-c('previous','campaign')
@@ -438,7 +454,7 @@ summary(df$f.campaign)
 Como en pdays hay 4815 valores de 999 que significa que no se han contactado en campañas previas, esto sería un 96% de los individuos por lo que decidimos realizar la agrupación en solo dos niveles, contactados y no-contactados.
 
 ```{r}
-aux2<-c(0,998,999) 
+aux2<-c(0,22,23) 
 pdays_cutted<-factor(cut(df$pdays,breaks=aux2,include.lowest=T))
 table(pdays_cutted)
 tapply(df$pdays,pdays_cutted,median)
