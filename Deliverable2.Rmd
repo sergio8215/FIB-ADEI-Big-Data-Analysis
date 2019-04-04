@@ -46,7 +46,7 @@ load("data-INI2.RData")
 PCA analysis for your data should contain:
 
     * Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
-    * Individuals point of view: Are they any individuals "too contributive"? To better understand the axes meaning use the extreme individuals. Detection of multivariant outliers and influent data.
+    * Individuals point of view: Are they any individuals #preguntar "too contributive"? To better understand the axes meaning use the #preguntar extreme individuals. Detection of multivariant outliers and influent data.
     * Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
     * Perform a PCA taking into account also supplementary variables the supplementary variables can be quantitative and/or categorical  
 
@@ -70,9 +70,19 @@ cor(df[,vars_num])[1,]
 
 
 ##Valores propios y ejes dominantes
-# preguntar eigens vectors y aigen values. tambien porque se hace la matriz de correlacion con la misma matriz del vector propio
+# preguntar eigens vectors y aigen values. tambien porque se hace la matriz de correlacion con la misma matriz del vector propio - sea a una matriz cuadrada, nxn entonces un vector propio es aquel U tal qeue al multriplcarlo por la matriz cuadrada optengo el mismo vector propio por un escalar. El vector propio se relaciona mejor que los ejes por que las direcciones donde esta la varianza es casualmente donde esta el vector propio. La relacion de los datos proyectados y los vectores propios es lo de la transparencia 70 de (componentes principales)
 # preguntar, pdays hay que cambiarlo al maximo mas uno ahora o antes en el deliberable 1
 
+- para keiser si tiene el valo propio mayor a uno, esto debe estar normalizado. Si es menor a uno seria ruido
+- la regla del codo se grafica la varianza de cada dimension, normalmente un barplot o screeplot el punto al partir el cual comienza a estar practicamente plano el screetplot.
+- Criterio de la cantidad de la varianza explicada, en datos abundantes suele ser el 80%, pero en otros puede estar en 90 95%, depende.
+
+    
+### Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
+
+
+ Por la ley de Kaiser, cojemos los 3 primeros ejes factoriales, los cuales son mayores a 1. 
+ Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a ser plana a partir de la 3ra dimension, es decir que se cogen las 3 primeras dimensiones.
 
 ```{r}
 eigens<-eigen(Z)
@@ -90,11 +100,33 @@ summary(res.pca,ncp=4,nb.dec=2)
 #Cumulative % of var.  43.15  58.31  70.63  81.37  90.62  95.37  99.62  99.88 100.00
 
 
-plot(res.pca$eig[,1],main="Eigenvalues",names.arg=paste("dim",1:nrow(res.pca$eig)),type="o", col="blue") # preguntar el elbow esta antes de la dimension 2?
+plot(res.pca$eig[,1],main="Eigenvalues",names.arg=paste("dim",1:nrow(res.pca$eig)),type="o", col="blue")
 
-#Por el criterio de kaiser cogeríamos las primeras 3 variables, ya que son mayores que 1. Vemos que la dimensiíon 1 vale por 3.88 variables de información
-#miramos de cumplir los tres criterios, el de kaiser, el del 80% y otro que no me acuerdo.
 ```
+
+### Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
+
+Al hacer el PCA con la variable target duration, podemos ver que su modulo es practicamente nulo, esto quiere decir que la variable no se ve representada en niguno de los ejes factoriles.
+
+El eje horizonatal está muy relacionado con nr.emplyed, tambien con campaign pero en menor magnitud. Para el eje vertical, vemos que hay una relación con age.
+
+
+
+```{r}
+res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1)
+
+res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1,axes=3:4) # para ver ejes 3 y 4  # preguntar porque ver ejes 3 y 4 
+```
+
+
+### Perform a PCA taking into account also supplementary variables the supplementary variables can be quantitative and/or categorical
+
+```{r}
+
+res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=c(1,12,13,14), quali.sup = c(2,3,4,6,7))
+
+```
+
 
 
 ####################  ENUNCIADO  ###########################
