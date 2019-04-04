@@ -47,6 +47,8 @@ PCA analysis for your data should contain:
 
     * Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
     * Individuals point of view: Are they any individuals #preguntar "too contributive"? To better understand the axes meaning use the #preguntar extreme individuals. Detection of multivariant outliers and influent data.
+    # repesentacion de las observaciones en rp y todo lo que pueda explotar al respecto, los mas representados mas contributivos etc. Se debe hacer un plot pero no a secas no hcae nada, debe utilizar alguna custimzaciondel plot por lo menos que muestre .. parametrizar con un select y mostrar los 15 mas contributivos.
+    
     * Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
     * Perform a PCA taking into account also supplementary variables the supplementary variables can be quantitative and/or categorical  
 
@@ -76,6 +78,10 @@ cor(df[,vars_num])[1,]
 - para keiser si tiene el valo propio mayor a uno, esto debe estar normalizado. Si es menor a uno seria ruido
 - la regla del codo se grafica la varianza de cada dimension, normalmente un barplot o screeplot el punto al partir el cual comienza a estar practicamente plano el screetplot.
 - Criterio de la cantidad de la varianza explicada, en datos abundantes suele ser el 80%, pero en otros puede estar en 90 95%, depende.
+
+    
+    
+  elegir bien las variables suplementarias. 
 
     
 ### Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
@@ -109,7 +115,6 @@ plot(res.pca$eig[,1],main="Eigenvalues",names.arg=paste("dim",1:nrow(res.pca$eig
 Al hacer el PCA con la variable target duration, podemos ver que su modulo es practicamente nulo, esto quiere decir que la variable no se ve representada en niguno de los ejes factoriles.
 
 El eje horizonatal está muy relacionado con nr.emplyed, tambien con campaign pero en menor magnitud. Para el eje vertical, vemos que hay una relación con age.
-
 
 
 ```{r}
