@@ -92,15 +92,18 @@ cor(df[,vars_num])[1,]
 
 
  Por la ley de Kaiser, cojemos los 3 primeros ejes factoriales, los cuales son mayores a 1. 
- Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a ser plana a partir de la 3ra dimension, es decir que se cogen las 3 primeras dimensiones.
+ Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a ser plana a partir de la 2da dimension, es decir que se cogen las 2 primeras dimensiones.
+ Si tomamos en cuenta el criterio del 80% se deberian coger las 4 primeras dimensiones.
+ 
+ Para realizar el futuro analisi, combiene coger dimensiones pares, por lo que decidimos de solo coger 2.
 
 ```{r}
-eigens<-eigen(Z)
-t(eigens$vectors)%*%eigens$vectors
-res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1) # Hay que poner como suplemenmtaria la variable target. Convé treure pdays ja que té molts missings
-#La flecha pequeña de duration significa que poco se podrá relacionar el resto de variables con el target duration. Conviene poner pdays en max+1 en lugar de 999
 
-res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1,axes=3:4)#para ver ejes 3 y 4  # preguntar porque ver ejes 3 y 4 
+# eigens<-eigen(Z)
+# t(eigens$vectors)%*%eigens$vectors
+
+res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1, graph=FALSE) # Hay que poner como suplemenmtaria la variable target. Convé treure pdays ja que té molts missings
+#La flecha pequeña de duration significa que poco se podrá relacionar el resto de variables con el target duration.
 
 summary(res.pca,ncp=4,nb.dec=2)
 #Eigenvalues
@@ -109,8 +112,7 @@ summary(res.pca,ncp=4,nb.dec=2)
 #% of var.             43.15  15.17  12.32  10.74   9.25   4.75   4.25   0.27   0.12
 #Cumulative % of var.  43.15  58.31  70.63  81.37  90.62  95.37  99.62  99.88 100.00
 
-
-plot(res.pca$eig[,1],main="Eigenvalues",names.arg=paste("dim",1:nrow(res.pca$eig)),type="o", col="blue")
+plot(res.pca$eig[,1],main="Eigenvalues",type="o", col="blue")
 
 ```
 
@@ -118,13 +120,19 @@ plot(res.pca$eig[,1],main="Eigenvalues",names.arg=paste("dim",1:nrow(res.pca$eig
 
 Al hacer el PCA con la variable target duration, podemos ver que su modulo es practicamente nulo, esto quiere decir que la variable no se ve representada en niguno de los ejes factoriles.
 
-El eje horizonatal está muy relacionado con nr.emplyed, tambien con campaign pero en menor magnitud. Para el eje vertical, vemos que hay una relación con age.
+El eje horizonatal está muy relacionado con las variables socio economicas, mirando el cos2 de las tablas podemos ver que las variables más relacionadas con la dimension 1 son:
+  euribor3m, emp.var.rate, nr.emplyed
+Para el eje vertical: 
+  pdays
 
+tambien con campaign pero en menor magnitud. Para el eje vertical, vemos que hay una relación con age.
 
 ```{r}
+
 res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1)
 
-res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1,axes=3:4) # para ver ejes 3 y 4  # preguntar porque ver ejes 3 y 4 
+res.pca<-PCA(df[,c('y',vars_num)],quali.sup=1)
+
 ```
 
 
@@ -132,7 +140,20 @@ res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1,axes=3:4) # para ver ejes 
 
 ```{r}
 
-res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=c(1,12,13,14), quali.sup = c(2,3,4,6,7))
+# vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.duration","f.campaign","f.pdays","f.previous");
+vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.pdays","y");
+
+res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:16))
+
+plot(res.pca,choix="var")
+plot(res.pca,choix="var", cex=0.75)
+
+summary(res.pca)
+
+plot.PCA(res.pca,choix="ind",invisible="ind")
+lines(res.pca$quali.sup$coord[1:2,1:2],col="blue",lwd=2)
+lines(res.pca$quali.sup$coord[3:6,1:2],col="cyan",lwd=2)
+
 
 ```
 
