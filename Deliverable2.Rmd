@@ -90,9 +90,10 @@ cor(df[,vars_num])[1,]
     
 ### Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
 
+Hemos decidido quitar padys ya que es una variable con muchos missings.
 
- Por la ley de Kaiser, cojemos los 3 primeros ejes factoriales, los cuales son mayores a 1. 
- Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a ser plana a partir de la 2da dimension, es decir que se cogen las 2 primeras dimensiones.
+Por la ley de Kaiser, cojemos los 3 primeros ejes factoriales, los cuales son mayores a 1. 
+Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a ser plana a partir de la 2da dimension, es decir que se cogen las 2 primeras dimensiones.
  Si tomamos en cuenta el criterio del 80% se deberian coger las 4 primeras dimensiones.
  
  Para realizar el futuro analisi, combiene coger dimensiones pares, por lo que decidimos de solo coger 2.
@@ -102,19 +103,30 @@ cor(df[,vars_num])[1,]
 # eigens<-eigen(Z)
 # t(eigens$vectors)%*%eigens$vectors
 
-res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1, graph=FALSE) # Hay que poner como suplemenmtaria la variable target. Convé treure pdays ja que té molts missings
+vars_num_sin_pday = vars_num[-3];
+res.pca<-PCA(df[,c('duration',vars_num_sin_pday)],quanti.sup=1, graph=FALSE) # Hay que poner como suplemenmtaria la variable target. Convé treure pdays ja que té molts missings
 #La flecha pequeña de duration significa que poco se podrá relacionar el resto de variables con el target duration.
 
 summary(res.pca,ncp=4,nb.dec=2)
-#Eigenvalues
-#                      Dim.1  Dim.2  Dim.3  Dim.4  Dim.5  Dim.6  Dim.7  Dim.8  Dim.9
-#Variance               3.88   1.36   1.11   0.97   0.83   0.43   0.38   0.02   0.01
-#% of var.             43.15  15.17  12.32  10.74   9.25   4.75   4.25   0.27   0.12
-#Cumulative % of var.  43.15  58.31  70.63  81.37  90.62  95.37  99.62  99.88 100.00
 
 plot(res.pca$eig[,1],main="Eigenvalues",type="o", col="blue")
 
 ```
+
+#  Individuals point of view: Are they any individuals "too contributive"? To better understand the axes meaning use the extreme individuals. Detection of multivariant outliers and influent data.
+
+```{r}
+
+summary(res.pca,dig = 2, nbelements= 17, nbind=3, ncp=4)
+plot.PCA(res.pca, choix=c("ind"),cex=0.8,col.ind="grey70",select="contrib15",axes=c(1,2))
+
+sel <- sort(res.pca$ind$contrib[,1], decreasing = TRUE)[1:5]
+
+plot.PCA(res.pca,choix="ind",invisible="ind")
+
+```
+
+
 
 ### Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
 
@@ -129,9 +141,9 @@ tambien con campaign pero en menor magnitud. Para el eje vertical, vemos que hay
 
 ```{r}
 
-res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1)
+res.pca<-PCA(df[,c('duration',vars_num_sin_pday)],quanti.sup=1)
 
-res.pca<-PCA(df[,c('y',vars_num)],quali.sup=1)
+res.pca<-PCA(df[,c('y',vars_num_sin_pday)],quali.sup=1)
 
 ```
 
