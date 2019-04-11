@@ -104,6 +104,7 @@ Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a
 # t(eigens$vectors)%*%eigens$vectors
 
 vars_num_sin_pday = vars_num[-3];
+res2.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1, graph=FALSE) # Hay que poner como suplemenmtaria la variable target. Convé treure
 res.pca<-PCA(df[,c('duration',vars_num_sin_pday)],quanti.sup=1, graph=FALSE) # Hay que poner como suplemenmtaria la variable target. Convé treure pdays ja que té molts missings
 #La flecha pequeña de duration significa que poco se podrá relacionar el resto de variables con el target duration.
 
@@ -120,7 +121,7 @@ plot(res.pca$eig[,1],main="Eigenvalues",type="o", col="blue")
 summary(res.pca,dig = 2, nbelements= 17, nbind=3, ncp=4)
 plot.PCA(res.pca, choix=c("ind"),cex=0.8,col.ind="grey70",select="contrib15",axes=c(1,2))
 
-sel <- sort(res.pca$ind$contrib[,1], decreasing = TRUE)[1:5]
+sel <- sort(res.pca$ind$contrib[,1], decreasing = TRUE)[1:15] # ver si hay alguna caracteristica relevnte, ver los 5 mas relevantes de este eje y del eje 2, ver que comparten en común.
 
 plot.PCA(res.pca,choix="ind",invisible="ind")
 
@@ -155,7 +156,7 @@ res.pca<-PCA(df[,c('y',vars_num_sin_pday)],quali.sup=1)
 # vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.duration","f.campaign","f.pdays","f.previous");
 vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.pdays","y");
 
-res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:16))
+res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:16))  # no ponerlas todas a la vez, poner por grupos. Pntar grupos de variables, si categorias quedan en el medio no valen de nada, hay que ver si categorias de las variables que estan lejos del centrode gravedad, son las que valen la pena. Fijarse que no cambian los valores de los ejes porque si no no tendremos referencia para comparar
 
 plot(res.pca,choix="var")
 plot(res.pca,choix="var", cex=0.75)
