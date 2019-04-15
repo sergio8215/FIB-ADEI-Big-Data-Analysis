@@ -136,21 +136,24 @@ Para el primer plot, tenemos f.job y f.season para los cuales podemos ver que
 
 # preguntar y pendiente cambiar de color cada variable con sus factores
 
-# vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.duration","f.campaign","f.pdays","f.previous");
+ vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.duration","f.campaign","f.pdays","f.previous","y");
 # vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.pdays","y");
 
-res.pca<-PCA(df[,c('duration',vars_num, "f.job","f.season")],cex=0.75,quanti.sup=1, quali.sup = c(11:12))
+res.pca<-PCA(df[,c('duration',vars_num, "f.job","f.season")],quanti.sup=1, quali.sup = c(11:12))
 plot.PCA(res.pca,choix="ind",invisible="ind",cex=0.75)
 
-res.pca<-PCA(df[,c('duration',vars_num,"f.education","f.age")],cex=0.75,quanti.sup=1, quali.sup = c(11:12))
+res.pca<-PCA(df[,c('duration',vars_num,"f.education","f.age")],quanti.sup=1, quali.sup = c(11:12))
 plot.PCA(res.pca,choix="ind",invisible="ind",cex=0.75)
 
-res.pca<-PCA(df[,c('duration',vars_num,"f.pdays","y")],cex=0.75,quanti.sup=1, quali.sup = c(11:12))
+res.pca<-PCA(df[,c('duration',vars_num,"f.pdays","y")],quanti.sup=1, quali.sup = c(11:12))
 plot.PCA(res.pca,choix="ind",invisible="ind",cex=0.75)
+
+res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:19))
 
 plot.PCA(res.pca,choix="ind",invisible="ind")# no ponerlas todas a la vez, poner por grupos. Pntar grupos de variables, si categorias quedan en el medio no valen de nada, hay que ver si categorias de las variables que estan lejos del centrode gravedad, son las que valen la pena. Fijarse que no cambian los valores de los ejes porque si no no tendremos referencia para comparar
 
-summary(res.pca)
+summary(res.pca,dig = 2, nbelements= 50, nbind=3, ncp=4)
+
 
 #lines(res.pca$quali.sup$coord[1:2,1:2],col="blue",lwd=2)
 #lines(res.pca$quali.sup$coord[3:6,1:2],col="cyan",lwd=2)
@@ -159,9 +162,13 @@ summary(res.pca)
 
 ## K-Means Classification
 
+Hemos graficado los grupos separados en 3, 4, 5 y 6 clusters, para los cuales nos parece que graficamente con 4 clusters los grupos están bien definidos, por lo que decidimos usar con 4 clusters los cuals analisaremos seguidamente.
+
 
 ```{r}
 dclu<- res.pca$ind$coord[,1:2]; # los dos ejes
+
+kcla<- kmeans(dclu,4);
 
 df$cluster3 = factor(kmeans(dclu,3)$cluster);
 df$cluster4 = factor(kmeans(dclu,4)$cluster);
@@ -183,37 +190,170 @@ res.pca<-PCA(df[,c('duration',vars_num, "cluster6")],quanti.sup=1, quali.sup = 1
 plot.PCA(res.pca,choix="ind",habillage=11,select=0 ,cex=0.75)
 par(mfrow=c(1,1))
 
-df <- df[,1:30]
 
-
-catdes(df, 30, proba = 0.005)
+df <- df[,c(1:29, 31)] # guardamos la clasificación en 4 clusters
 
 ```
  
 
-    Description of clusters
+## Description of clusters
 
-Hierarchical Clustering
+Viendo el chi-square test, podemos saber que variables se utilizarán para caracterizar nuestros 4 clusters. 
+Viendo las categorias donde el P-value es casi 0 podemos ver que las categorias que cumplen estas caracteristicas son: month (y por extensión también f.season), poutcome, f.pdays, f.previous, contact, y, job(f.job), default, f.age, f.campaign, marital. Ahora veremos que cateogrias de estas variables son las que caracterizan estos clusters.
 
-    Description of clusters
+Para el catdes del cluster 1, hemos podido ver las categorias que mejor lo definen, la temporada de verano es la que mejor lo caracteriza, f.season.Jun-Aug, tenemos también un poutcome que nos indica que ninguno de los individuos ha sido contactado previamente, podemos ver que y.no representa el 95% de este cluster, han sido contactados en su mayoria por teléfono local, también podemos ver que este cluster esta ligeramente relacionado con la categoria f.job.Serv-Tech-BlueC. En conclusión podemos decir que este cluster esta caracterizado por:
+	- Meses de jun-Ago
+	- No han sido contactados previamente
+	- Han sido contactados más de una vez en la campaña actual
+	- Contactados por teléfono fijo
+	- Trabajo es en media servicio, tecnicos o blue collar.
+	- No compraron el producto en su mayoria.
+	
+Para el cluster 2, tenemos:
+	- La temporada de mar-may están sobrerepresentadas en este cluster
+	- Han sido contacados en su mayoria por teléfono móvil
+	- No han comprado el producto en campañas anteriores
+	- Han sio contacados en camapañas previas
+	- La categoria student esta sobrerepresentada
+	- La aceptación del producto esta sobrerepresentada también
+	
+Para el cluster 3, tenemos:
+	- Temporada de Sep-Dec
+	- Contactdos por móvil en su mayoria
+	- La categoria de job.management esta sobrerepresentada
+	- No han adquirido el producto
+	- Una gran cantidad de individuos rechazo el productoy y.no
+	
+Para el cluster 4, podemos ver que aglutina individuos muy bien caracterizado por las siguientes variables:
+	- Han sido contactados previamente f.pdays[0,22]
+	- Han comprado el producto en una campaña previa
+	- Han comprado el producto y.yes
+	- Temporada de Sep-Dec
+	- Han sido contactados por móvil
+	- Una parte importante son job.retired
+	- Una edad de f.age-(50,92]
+	
+# preguntar si hay que analizar Description of each cluster by quantitative variables de catdes.
 
-CA analysis for your data should contain your factor version of the numeric target (previous) in K= 7 (maximum 10) levels and 2 factors:
+```{r}
+catdes(df, 30, proba = 0.001)
+```
 
-    Eigenvalues and dominant axes analysis. How many axes we have to consider
-    Are there any row categories that can be combined/avoided to explain Duration target.
 
- MCA analysis for your data should contain:
+## Hierarchical Clustering
 
-    Eigenvalues and dominant axes analysis. How many axes we have to consider for next Hierarchical Classification stage?
-    Individuals point of view: Are they any individuals "too contributive"? Are there any groups?
-    Interpreting map of categories: average profile versus extreme profiles (rare categories)
-    Interpreting the axes association to factor map.
-    Perform a MCA taking into account also supplementary variables (use all numeric variables) quantitative and/or categorical. How supplementary variables enhance the axis interpretation?
+Al hacer el HCPC podemos ver que el grafico de ganancia de inercia, nos da para dos variables en su mayoria, y luego dos picos más pequeños.
 
- Hierarchical Clustering (from MCA)
+Analizando el resultado del HCPC podemos ver lo siguiente para cada cluster.
 
-    Description of clusters
-    Parangons and class-specific individuals.
-    Comparison of clusters obtained after K-Means (based on PCA) and/or Hierarchical Clustering (based on PCA) focusing on Duration target.
-    Comparison of clusters obtained after K-Means (based on PCA) and/or Hierarchical Clustering (based on PCA) focusing on the binary target.
-####################  FIN ENUNCIADO  #######################
+
+Ahora vemos el clustering no supervisado. Vamos a clasificar estos clusters.
+Para el cluster 1:
+- Esta caracterizado por personas que han sido contactados previamente
+- Han aceptado el producto
+- Se han contactado en f.season.Sep-Dec
+- Tienen una sobrerepresentación de f.job.Entrep-Retired-selfEmpl
+- Llamadas de duración mayor a 3min
+
+Para el cluster 2:
+- Han sido contactados f.season.Mar-May
+- Han sido contactados en campañas previas
+- Han aceptado el producto y.yes
+
+
+Para el cluster 3:
+- Han sido contactados previamente
+- No han sido contactados en campañas previas
+- Han sido contactados en la temporada de f.season.Jun-Aug
+- Han rechazado el producto
+- Tienen una leve represetnación de f.job.Serv-Tech-BlueC
+
+```{r}
+
+res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:19), ncp=2, graph=FALSE)
+
+#res.pca<-PCA(df[,c('duration',vars_num, "cluster4")],quanti.sup=1, quali.sup = 11, graph=FALSE)
+#plot.PCA(res.pca,choix="ind",habillage=11,select=0 ,cex=0.75)
+
+res.hcpc<-HCPC(res.pca,order=TRUE)
+attributes(res.hcpc)
+
+summary(res.hcpc$data.clust)
+# var save  <-res.hcpc$data.clust$clust
+
+attributes(res.hcpc$desc.var)
+
+# Factors globally related to clustering partition
+res.hcpc$desc.var$test.chi2
+
+# Categories over/under represented in each cluster
+res.hcpc$desc.var$category
+
+# Numeric variables globally related to clustering partition
+res.hcpc$desc.var$quanti.var
+res.hcpc$desc.var$quanti
+
+# Manera ràpida: proper dia
+
+### desc.ind ###
+### C. The description of the clusters by the individuals ###
+names(res.hcpc$desc.ind)
+res.hcpc$desc.ind$para  # Close to center of gravity
+res.hcpc$desc.ind$dist  
+```
+
+
+## Description of clusters
+```{r}
+
+
+```
+
+
+## CA analysis for your data should contain your factor version of the numeric target (previous) in K= 7 (maximum 10) levels and 2 factors:
+### Eigenvalues and dominant axes analysis. How many axes we have to consider are there any row categories that can be combined/avoided to explain Duration target.
+
+Cogemos las dimensiones que son mayores a la media, para nuestro caso solo seria 1(kaiser).
+
+
+```{r}
+# CA - f.duration vs f.age
+res.ca<-CA(table(df$f.age,df$f.duration))
+attributes(res.ca)
+res.ca$eig
+mean(res.ca$eig[,1])  # Mean of eigenvalues
+sum(res.ca$eig[,1])  # Total inertia
+
+# Rows
+res.ca$row
+# Columns: the same
+res.ca$col
+
+# Link levels in rows
+plot.CA(res.ca)
+lines(res.ca$row$coord[,1],res.ca$row$coord[,2],lwd=2,col="darkblue")
+lines(res.ca$col$coord[,1],res.ca$col$coord[,2],lwd=2,col="red")
+
+# Phi2 = Intensity of the association Chisq/nbobservations
+sum(res.ca$eig[,1]) # Total Inertia = Phi2
+# H0: f.duration - f.age independency
+chisq.test(table(df$f.age,df$f.duration))
+7.2021/length(df[,1])
+
+# Repeat job vs f.duration
+par(cex=0.8)
+res.ca<-CA(table(df$job,df$f.duration))
+res.ca$eig
+mean(res.ca$eig[,1])
+
+# Target y : no apply
+res.ca<-CA(table(df$y,df$f.duration))
+res.ca
+plot.CA(res.ca)
+
+# Traditional analysis
+table(df$y,df$f.duration)
+chisq.test(table(df$y,df$f.duration))
+```
+
+
