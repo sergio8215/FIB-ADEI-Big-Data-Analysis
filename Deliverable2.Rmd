@@ -227,13 +227,13 @@ Para el cluster 3:
 - Han rechazado el producto  
 - Tienen una leve representación de f.job.Serv-Tech-BlueC  
   
+Además vemos que los parengones tienen mucho parecido a lo descrito para cada cluster.
+
+Utilizamos el atributo nb.clust=3, después de haber visto que era el mejor corte.
 
 ```{r}
 res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:19), ncp=2, graph=FALSE)
-```
-# añadir a mano
-```{r setup, include=FALSE}
-res.hcpc<-HCPC(res.pca,order=TRUE)
+res.hcpc<-HCPC(res.pca,order=TRUE, nb.clust = 3)
 attributes(res.hcpc)
 
 summary(res.hcpc$data.clust)
@@ -252,7 +252,6 @@ names(res.hcpc$desc.ind)
 res.hcpc$desc.ind$para  # Close to center of gravity
 res.hcpc$desc.ind$dist  
 ```
-# fin añadir a mano
 
 ## CA analysis for your data should contain your factor version of the numeric target (duration) in K= 7 (maximum 10) levels and 2 factors:
 ### Eigenvalues and dominant axes analysis. How many axes we have to consider are there any row categories that can be combined/avoided to explain Duration target.
