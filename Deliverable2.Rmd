@@ -34,10 +34,10 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 
 ```{r include=FALSE}
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
-rm(list=ls())
+#rm(list=ls())
 load("data-INI2.RData")
 ```
 
@@ -46,25 +46,22 @@ load("data-INI2.RData")
 
 ### Eigenvalues and dominant axes analysis. How many axes we have to interpret according to Kaiser and Elbow's rule?
 
-Hemos decidido probar como se ve el PCA sin y con la variable pdays, ya que consideramos con una variable con bastantes missings, aún así aporta información por lo tanto la vamos a considerar.
+Hemos decidido probar como se ve el PCA sin y con la variable pdays, ya que consideramos que es una variable con bastantes missings, aún así aporta información por lo tanto la vamos a considerar.
 
 ```{r}
 vars_num_sin_pday = vars_num[-3];
-par(mfrow=c(1,2))
 res2.pca<-PCA(df[,c('duration',vars_num_sin_pday)],quanti.sup=1)
 res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1)
-par(mfrow=c(1,1))
 ```
 
+Vemos que con pdays existe una relación inversa con previous, respecto a los dos ejes factoriales, sin pdays se puede ver que la contribución de la variable age con el segundo eje factorial es mayor, ya que gráficamente tiene mayor magnitud además que las variables socio económicas, se ven mejor representadas en el primer eje factorial.
 
-Vemos que con pdays existe una relación inversa con previous, respecto a los dos ejes factoriales, sin pdays se puede ver que la contribución de la variable age con el segundo eje factorial es mayor, ya que graficamente tiene mayor magnitud ademas que las variables socio economicas, se ven mejor representadas en el primer eje factorial.
+Por la ley de Kaiser, deberíamos utilizar los 3 primeros ejes factoriales, los cuales son mayores a 1. 
+Por la ley de ElBow, al realizar el gráfico podemos ver que la gráfica empieza a ser plana a partir de la 2da dimensión, es decir que se cogen las 2 primeras dimensiones.
 
-
-Por la ley de Kaiser, deberiamos utilizar los 3 primeros ejes factoriales, los cuales son mayores a 1. 
-Por la ley de ElBow, al realizar el grafico podemos ver que la grafica empieza a ser plana a partir de la 2da dimension, es decir que se cogen las 2 primeras dimensiones.
- Si tomamos en cuenta el criterio del 80% se deberian coger las 4 primeras dimensiones.
+Si tomamos en cuenta el criterio del 80% se deberían coger las 4 primeras dimensiones.
  
- Para realizar el futuro analisi, combiene utilizar dimensiones pares, por lo que decidimos de solo usar 2.
+Para realizar el futuro análisis, conviene utilizar dimensiones pares, por lo que decidimos solo usar 2.
 
 ```{r}
 summary(res.pca,ncp=4,nb.dec=2)
@@ -72,72 +69,53 @@ plot(res.pca$eig[,1],main="Eigenvalues",type="o", col="blue")
 ```
 
 
-#  Individuals point of view: Are they any individuals "too contributive"? To better understand the axes meaning use the extreme individuals. Detection of multivariant outliers and influent data.
+##  Individuals point of view: Are they any individuals "too contributive"? To better understand the axes meaning use the extreme individuals. Detection of multivariant outliers and influent data.
 
-Primero graficamos en rp los 15 individuos más contributivos en ambos ejes, luego analizamos los 5 individuos más contributivos en la dimensión 1 y 2. Al ver si estos tienen alguna relación significante, podemos decir que para los 5 individuos de la dimension 1, vemos que principalmente son gente mayor de 45años, todos han comprado el producto, han sido contactados mediante el móvil, han sido contactados previamente, comprado un producto en una campaña anterior, la duración de la llamada ha sido mayor a los 300s.
+Primero graficamos en rp los 15 individuos más contributivos en ambos ejes, luego analizamos los 5 individuos más contributivos en la dimensión 1 y 2. Al ver si estos tienen alguna relación significativa, podemos decir que para los 5 individuos de la dimension 1, vemos que principalmente son gente mayor de 45años, todos han comprado el producto, han sido contactados mediante el móvil, han sido contactados previamente, comprado un producto en una campaña anterior y la duración de la llamada ha sido mayor a los 300s.
 
-Para la dimension 2 podemos ver practicamente las mismas caracteristas menos la duración que ha sido menor. Cabe a destacar que sin embargo hay dos individuos que son muy contributivos en ambos ejes, eso hace pensar que pueden ser posibles outliers pero de igual forma los dejamos en los datos. 
+Para la dimensión 2 podemos ver prácticamente las mismas características menos la duración que ha sido menor. Cabe destacar sin embargo que hay dos individuos que son muy contributivos en ambos ejes, eso hace pensar que pueden ser posibles outliers pero de igual forma los dejamos en los datos. 
 
 
 ```{r}
-
 plot.PCA(res.pca, choix=c("ind"),cex=0.8,col.ind="grey70",select="contrib15",axes=c(1,2)) 
 mas_ctr_dim1 <- sort(res.pca$ind$contrib[,1], decreasing = TRUE)[1:5]
-mas_ctr_dim2 <- sort(res.pca$ind$contrib[,2], decreasing = TRUE)[1:5] # ver si hay alguna caracteristica relevnte, ver los 5 mas relevantes de este eje y del eje 2, ver que comparten en común.
-
-# mas_ctr_dim1
-#    40396     39592     38902     38814     36461 
-#0.2482556 0.2196878 0.2057888 0.2053101 0.1994545  
-# mas_ctr_dim2
-#    40396     40703     39592     38902     39612 
-#1.3837961 1.1876086 0.8973750 0.8642930 0.8630042 
-
+mas_ctr_dim2 <- sort(res.pca$ind$contrib[,2], decreasing = TRUE)[1:5]
 df[names(mas_ctr_dim1),]
 df[names(mas_ctr_dim2),]
-
-# which(res.pca$ind$dist>=max(res.pca$ind$dist)) # encontrar el ind con mayor distancia al centro
-
-# pendiente apuntar los indv mas ctr en colores diferente
-
 ```
 
+## Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
 
-### Interpreting the axes:  Variables point of view coordinates, quality of representation, contribution of the variables  
+Al hacer el PCA con la variable target duration como suplementaria, podemos ver que su módulo es prácticamente nulo, esto quiere decir que la variable no se ve representada en niguno de los ejes factoriales.
 
-Al hacer el PCA con la variable target duration como suplementaria, podemos ver que su modulo es practicamente nulo, esto quiere decir que la variable no se ve representada en niguno de los ejes factoriles.
-
-El eje horizontal está muy relacionado con las variables socio economicas, mirando el cos2 del summary podemos ver que las variables que estan mejor representadas con la dimension 1 son:
+El eje horizontal está muy relacionado con las variables socio económicas, mirando el cos2 del summary podemos ver que las variables que están mejor representadas con la dimensión 1 son:
   euribor3m, emp.var.rate, nr.emplyed
 Para el eje vertical: 
   pdays y previous
 
-Para el eje vertical, podemos decir que esta relacionado con las campañas previas.
+Para el eje vertical, podemos decir que está relacionado con las campañas previas.
 
-Al hacer el PCA con la variable target Y como suplementaria, podemos ver que en el grafico de rp, el factor no, esta muy cerca del centro de gravedad, por lo que no se ve representada en estos ejes factoriales. En cambio el factor si, esta con una distancia mayor del centro de gravedad, aunque poco significativa.
+Al hacer el PCA con la variable target Y como suplementaria, podemos ver que en el gráfico de rp, el factor NO, esta muy cerca del centro, por lo que no se ve representada en estos ejes factoriales. En cambio el factor SI, está a una distancia mayor del centro, aunque poco significativa.
 
 ```{r}
-par(mfrow=c(1,2))
 res.pca<-PCA(df[,c('duration',vars_num)],quanti.sup=1)
 summary(res.pca,ncp=4,nb.dec=2)
 res.pca<-PCA(df[,c('y',vars_num)],quali.sup=1)
 summary(res.pca,ncp=4,nb.dec=2)
-par(mfrow=c(1,1))
-
 ```
 
-
-### Perform a PCA taking into account also supplementary variables the supplementary variables can be quantitative and/or categorical
+## Perform a PCA taking into account also supplementary variables the supplementary variables can be quantitative and/or categorical
 
 Hemos dividido el plot en diferentes partes, para así poder entender y ver mejor el resultado.
-Para el primer plot, tenemos f.job y f.season para los cuales podemos ver que 
+Para la primera dimensión podemos ver que para los niveles mejor representados son:
+f.season.jun-aug, f.previous-(0.9,1], y.no, y.yes.
+
+Para la segunda dimsensión, las que se ven mejor representadas son:
+f.pdays-[0,22],f.pdays-(22,23], f.previous-(1,6]
 
 
 ```{r}
-
-# preguntar y pendiente cambiar de color cada variable con sus factores
-
- vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.duration","f.campaign","f.pdays","f.previous","y");
-# vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.pdays","y");
+vars_factorizadas<- c("f.job","f.season","f.education","f.age","f.duration","f.campaign","f.pdays","f.previous","y");
 
 res.pca<-PCA(df[,c('duration',vars_num, "f.job","f.season")],quanti.sup=1, quali.sup = c(11:12))
 plot.PCA(res.pca,choix="ind",invisible="ind",cex=0.75)
@@ -148,21 +126,16 @@ plot.PCA(res.pca,choix="ind",invisible="ind",cex=0.75)
 res.pca<-PCA(df[,c('duration',vars_num,"f.pdays","y")],quanti.sup=1, quali.sup = c(11:12))
 plot.PCA(res.pca,choix="ind",invisible="ind",cex=0.75)
 
-res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:19))
+res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:19),graph=FALSE)
 
-plot.PCA(res.pca,choix="ind",invisible="ind")# no ponerlas todas a la vez, poner por grupos. Pntar grupos de variables, si categorias quedan en el medio no valen de nada, hay que ver si categorias de las variables que estan lejos del centrode gravedad, son las que valen la pena. Fijarse que no cambian los valores de los ejes porque si no no tendremos referencia para comparar
+fviz_pca_var(res.pca, col.var = "contrib",gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),repel = TRUE)
 
-summary(res.pca,dig = 2, nbelements= 50, nbind=3, ncp=4)
-
-
-#lines(res.pca$quali.sup$coord[1:2,1:2],col="blue",lwd=2)
-#lines(res.pca$quali.sup$coord[3:6,1:2],col="cyan",lwd=2)
-
+summary(res.pca,dig = 2, nbelements= 30, nbind=3, ncp=2)
 ```
 
 ## K-Means Classification
 
-Hemos graficado los grupos separados en 3, 4, 5 y 6 clusters, para los cuales nos parece que graficamente con 4 clusters los grupos están bien definidos, por lo que decidimos usar con 4 clusters los cuals analisaremos seguidamente.
+Hemos graficado los grupos separados en 3, 4, 5 y 6 clusters, para los cuales nos parece que gráficamente con 4 clusters los grupos están bien definidos, por lo que decidimos usar 4 clusters los cuales analizaremos seguidamente.
 
 
 ```{r}
@@ -175,11 +148,6 @@ df$cluster4 = factor(kmeans(dclu,4)$cluster);
 df$cluster5 = factor(kmeans(dclu,5)$cluster);
 df$cluster6 = factor(kmeans(dclu,6)$cluster);
 
-#summary(kcla)
-#table(kcla$cluster)
-#kcla$betweenss/kcla$totss
-
-par(mfrow=c(2,2))
 res.pca<-PCA(df[,c('duration',vars_num, "cluster3")],quanti.sup=1, quali.sup = 11, graph=FALSE)
 plot.PCA(res.pca,choix="ind",habillage=11,select=0 ,cex=0.75)
 res.pca<-PCA(df[,c('duration',vars_num, "cluster4")],quanti.sup=1, quali.sup = 11, graph=FALSE)
@@ -188,43 +156,40 @@ res.pca<-PCA(df[,c('duration',vars_num, "cluster5")],quanti.sup=1, quali.sup = 1
 plot.PCA(res.pca,choix="ind",habillage=11,select=0 ,cex=0.75)
 res.pca<-PCA(df[,c('duration',vars_num, "cluster6")],quanti.sup=1, quali.sup = 11, graph=FALSE)
 plot.PCA(res.pca,choix="ind",habillage=11,select=0 ,cex=0.75)
-par(mfrow=c(1,1))
-
 
 df <- df[,c(1:29, 31)] # guardamos la clasificación en 4 clusters
-
 ```
  
-
 ## Description of clusters
 
-Viendo el chi-square test, podemos saber que variables se utilizarán para caracterizar nuestros 4 clusters. 
-Viendo las categorias donde el P-value es casi 0 podemos ver que las categorias que cumplen estas caracteristicas son: month (y por extensión también f.season), poutcome, f.pdays, f.previous, contact, y, job(f.job), default, f.age, f.campaign, marital. Ahora veremos que cateogrias de estas variables son las que caracterizan estos clusters.
+Viendo el chi-square test, podemos saber qué variables se utilizarán para caracterizar nuestros 4 clusters. 
+Viendo las categorías donde el P-value es casi 0 podemos ver que las categorías que cumplen estas caracteristicas son:
+month (y por extensión también f.season), poutcome, f.pdays, f.previous, contact, y, job(f.job), default, f.age, f.campaign, marital. Ahora veremos que categorías de estas variables son las que caracterizan estos clusters.
 
-Para el catdes del cluster 1, hemos podido ver las categorias que mejor lo definen, la temporada de verano es la que mejor lo caracteriza, f.season.Jun-Aug, tenemos también un poutcome que nos indica que ninguno de los individuos ha sido contactado previamente, podemos ver que y.no representa el 95% de este cluster, han sido contactados en su mayoria por teléfono local, también podemos ver que este cluster esta ligeramente relacionado con la categoria f.job.Serv-Tech-BlueC. En conclusión podemos decir que este cluster esta caracterizado por:
+Para el catdes del cluster 1, hemos podido ver las categorías que mejor lo definen, la temporada de verano es la que mejor lo caracteriza, f.season.Jun-Aug, tenemos también un poutcome que nos indica que ninguno de los individuos ha sido contactado previamente, podemos ver que y.no representa el 95% de este cluster, han sido contactados en su mayoría por teléfono fijo, también podemos ver que este cluster está ligeramente relacionado con la categoría f.job.Serv-Tech-BlueC. En conclusión podemos decir que este cluster está caracterizado por:
 	- Meses de jun-Ago
 	- No han sido contactados previamente
 	- Han sido contactados más de una vez en la campaña actual
 	- Contactados por teléfono fijo
-	- Trabajo es en media servicio, tecnicos o blue collar.
-	- No compraron el producto en su mayoria.
+	- Trabajo normalmente es, servicio, técnicos o blue collar.
+	- No compraron el producto en su mayoría.
 	
 Para el cluster 2, tenemos:
 	- La temporada de mar-may están sobrerepresentadas en este cluster
-	- Han sido contacados en su mayoria por teléfono móvil
+	- Han sido contacados en su mayoría por teléfono móvil
 	- No han comprado el producto en campañas anteriores
-	- Han sio contacados en camapañas previas
-	- La categoria student esta sobrerepresentada
-	- La aceptación del producto esta sobrerepresentada también
+	- Han sido contacados en camapañas previas
+	- La categoría student está sobrerepresentada
+	- La aceptación del producto está sobrerepresentada también
 	
 Para el cluster 3, tenemos:
 	- Temporada de Sep-Dec
-	- Contactdos por móvil en su mayoria
-	- La categoria de job.management esta sobrerepresentada
+	- Contactados por móvil en su mayoría
+	- La categoría de job.management está sobrerepresentada
 	- No han adquirido el producto
-	- Una gran cantidad de individuos rechazo el productoy y.no
+	- Una gran cantidad de individuos rechazó el producto (y.no)
 	
-Para el cluster 4, podemos ver que aglutina individuos muy bien caracterizado por las siguientes variables:
+Para el cluster 4, podemos ver que aglutina individuos muy bien caracterizados por las siguientes variables:
 	- Han sido contactados previamente f.pdays[0,22]
 	- Han comprado el producto en una campaña previa
 	- Han comprado el producto y.yes
@@ -232,68 +197,54 @@ Para el cluster 4, podemos ver que aglutina individuos muy bien caracterizado po
 	- Han sido contactados por móvil
 	- Una parte importante son job.retired
 	- Una edad de f.age-(50,92]
-	
-# preguntar si hay que analizar Description of each cluster by quantitative variables de catdes.
 
 ```{r}
 catdes(df, 30, proba = 0.001)
 ```
 
-
 ## Hierarchical Clustering
+  
+Al hacer el HCPC podemos ver que el gráfico de ganancia de inercia nos da la mayoría en dos variables, y luego dos picos más pequeños.  
+  
+Ahora vemos el clustering no supervisado. Vamos a clasificar estos clusters.  
+  
+Para el cluster 1:  
+- Está caracterizado por personas que han sido contactados previamente  
+- Han aceptado el producto  
+- Se han contactado en f.season.Sep-Dec  
+- Tienen una sobrerepresentación de f.job.Entrep-Retired-selfEmpl  
+- Llamadas de duración mayor a 3min  
 
-Al hacer el HCPC podemos ver que el grafico de ganancia de inercia, nos da para dos variables en su mayoria, y luego dos picos más pequeños.
-
-Analizando el resultado del HCPC podemos ver lo siguiente para cada cluster.
-
-
-Ahora vemos el clustering no supervisado. Vamos a clasificar estos clusters.
-Para el cluster 1:
-- Esta caracterizado por personas que han sido contactados previamente
-- Han aceptado el producto
-- Se han contactado en f.season.Sep-Dec
-- Tienen una sobrerepresentación de f.job.Entrep-Retired-selfEmpl
-- Llamadas de duración mayor a 3min
-
-Para el cluster 2:
-- Han sido contactados f.season.Mar-May
-- Han sido contactados en campañas previas
-- Han aceptado el producto y.yes
-
-
-Para el cluster 3:
-- Han sido contactados previamente
-- No han sido contactados en campañas previas
-- Han sido contactados en la temporada de f.season.Jun-Aug
-- Han rechazado el producto
-- Tienen una leve represetnación de f.job.Serv-Tech-BlueC
+Para el cluster 2:  
+- Han sido contactados f.season.Mar-May  
+- Han sido contactados en campañas previas  
+- Han aceptado el producto (y.yes)  
+  
+Para el cluster 3:  
+- Han sido contactados previamente  
+- No han sido contactados en campañas previas  
+- Han sido contactados en la temporada de f.season.Jun-Aug  
+- Han rechazado el producto  
+- Tienen una leve representación de f.job.Serv-Tech-BlueC  
+  
 
 ```{r}
-
 res.pca<-PCA(df[,c('duration',vars_num,vars_factorizadas)],quanti.sup=1, quali.sup = c(11:19), ncp=2, graph=FALSE)
-
-#res.pca<-PCA(df[,c('duration',vars_num, "cluster4")],quanti.sup=1, quali.sup = 11, graph=FALSE)
-#plot.PCA(res.pca,choix="ind",habillage=11,select=0 ,cex=0.75)
-
+```
+# añadir a mano
+```{r setup, include=FALSE}
 res.hcpc<-HCPC(res.pca,order=TRUE)
 attributes(res.hcpc)
 
 summary(res.hcpc$data.clust)
-# var save  <-res.hcpc$data.clust$clust
-
 attributes(res.hcpc$desc.var)
-
 # Factors globally related to clustering partition
 res.hcpc$desc.var$test.chi2
-
 # Categories over/under represented in each cluster
 res.hcpc$desc.var$category
-
 # Numeric variables globally related to clustering partition
 res.hcpc$desc.var$quanti.var
 res.hcpc$desc.var$quanti
-
-# Manera ràpida: proper dia
 
 ### desc.ind ###
 ### C. The description of the clusters by the individuals ###
@@ -301,24 +252,31 @@ names(res.hcpc$desc.ind)
 res.hcpc$desc.ind$para  # Close to center of gravity
 res.hcpc$desc.ind$dist  
 ```
+# fin añadir a mano
 
-
-## Description of clusters
-```{r}
-
-
-```
-
-
-## CA analysis for your data should contain your factor version of the numeric target (previous) in K= 7 (maximum 10) levels and 2 factors:
+## CA analysis for your data should contain your factor version of the numeric target (duration) in K= 7 (maximum 10) levels and 2 factors:
 ### Eigenvalues and dominant axes analysis. How many axes we have to consider are there any row categories that can be combined/avoided to explain Duration target.
 
-Cogemos las dimensiones que son mayores a la media, para nuestro caso solo seria 1(kaiser).
+Para experimentar y para que tenga más sentido el análisis de correspondencias, refactorizaremos a 8 niveles la variable duration.
 
+Ahora hacemos el análisis de correspondencias entre nuestra nueva duration factorizada y f.age. Para saber cuantas dimensiones debemos considerar, obtenemos la media de los eigenvalues. Vemos que solamente tiene sentido considerar el primer eje, ya que este es el único valor mayor a la media (kaiser).
+
+Al graficar el CA, podemos ver que los 2 niveles con menores edades, son los que menos representados en ese eje.
+Para duration, los niveles mejor representados en el eje son los de mayor y menor duración.
+
+Al ejecutar la función del chisq.test podemos ver que el pvalue es muy grande, lo que nos puede decir que la probabilidad de que no tengan relación es muy grande.
+
+### CA - duration vs f.age
 
 ```{r}
-# CA - f.duration vs f.age
-res.ca<-CA(table(df$f.age,df$f.duration))
+# Para duration
+aux2<-c(5,60,120,150,180,240,300,1200,2100) # Niveles "naturales"
+duration_k8<-factor(cut(df$duration,breaks=aux2,include.lowest=T))
+table(duration_k8)
+levels(duration_k8)<-paste0("f.duration-",levels(duration_k8)) # Hacemos las etiquetas más informativas
+summary(duration_k8)
+
+res.ca<-CA(table(df$f.age,duration_k8))
 attributes(res.ca)
 res.ca$eig
 mean(res.ca$eig[,1])  # Mean of eigenvalues
@@ -337,23 +295,45 @@ lines(res.ca$col$coord[,1],res.ca$col$coord[,2],lwd=2,col="red")
 # Phi2 = Intensity of the association Chisq/nbobservations
 sum(res.ca$eig[,1]) # Total Inertia = Phi2
 # H0: f.duration - f.age independency
-chisq.test(table(df$f.age,df$f.duration))
-7.2021/length(df[,1])
+chisq.test(table(df$f.age,duration_k8))
 
-# Repeat job vs f.duration
+```
+
+### CA - Education vs f.duration
+  
+Para la segunda prueba decidimos utilizar duration junto con education. Para education usaremos la variable original con todos sus niveles menos el nivel illiterate el cual nos puede causar inconvenientes.  
+  
+Por kaiser vemos que las primeras dos dimensiones están por encima de la media, por lo que son las que cogemos.  
+  
+Podemos ver que para la primera dimensión los valores más lejanos del centro son los niveles de education.basic_6y, education.university.degree, para la primera dimensión. Para la segunda tenemos, f.duration(150,180], education.professioal.course, esto nos puede decir qué niveles se ven mejor representados en las dimensiones.  
+
+```{r}
+#Education
+table(df$education)
+education_k6<-df$education
+education_k6[which(education_k6=="education.illiterate")]<-"education.basic.4y"
+education_k6=factor(education_k6)
+
 par(cex=0.8)
-res.ca<-CA(table(df$job,df$f.duration))
+res.ca<-CA(table(education_k6,duration_k8))
 res.ca$eig
 mean(res.ca$eig[,1])
 
-# Target y : no apply
-res.ca<-CA(table(df$y,df$f.duration))
-res.ca
+# Rows
+res.ca$row
+# Columns: the same
+res.ca$col
+
+# Link levels in rows
 plot.CA(res.ca)
+lines(res.ca$row$coord[,1],res.ca$row$coord[,2],lwd=2,col="darkblue")
+lines(res.ca$col$coord[,1],res.ca$col$coord[,2],lwd=2,col="red")
 
+# Phi2 = Intensity of the association Chisq/nbobservations
+sum(res.ca$eig[,1]) # Total Inertia = Phi2
+
+chisq.test(table(education_k6,duration_k8))
 # Traditional analysis
-table(df$y,df$f.duration)
-chisq.test(table(df$y,df$f.duration))
+table(df$y,duration_k8)
+chisq.test(table(df$y,duration_k8))
 ```
-
-
