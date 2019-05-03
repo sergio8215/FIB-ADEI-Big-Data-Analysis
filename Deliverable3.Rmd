@@ -37,7 +37,7 @@ lapply(requiredPackages, require, character.only = TRUE)
 setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 #setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
-#rm(list=ls())
+rm(list=ls())
 load("data-INI2.RData")
 ```
 
@@ -107,9 +107,7 @@ Viendo el plota de la normal Q-Q, vemos que los valores distan mucho de la recta
 
 ```{r}
 m4<-step(m1) # preguntar porque no quita mas? y porque da diferente al nuestro
-
 vif(m4)
-
 par(mfrow=c(2,2))
 plot(m4)
 par(mfrow=c(1,1))
@@ -123,8 +121,6 @@ Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist
 
 ```{r}
 m5<-step(m1,k=log(nrow(df)))
-
-vif(m5)
 
 par(mfrow=c(2,2))
 plot(m5)
@@ -140,11 +136,35 @@ Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist
 
 ```{r}
 boxcox(m,data=df)  #lambda 0 <- log(Y)
+
+m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)])
+Anova(m6)
+
+m7<-lm(log(duration)~campaign+pdays+nr.employed+euribor3m,data=df) # preguntar porque el vif da mas de 5, hay que quitar euribor o employed, si quitamos una la otra sube su pvalor.
+
+summary(m7)
+Anova(m7)
+
+vif(m7)
+
+par(mfrow=c(2,2))
+plot(m7)
+par(mfrow=c(1,1))
+```
+
+Aplicando el logaritmo, lo que estamos haciendo es la transformación.
+
+Vemos que para emp.var.rate, nos resulta util usar su versión polinomica al cuadrado, ya que el p-value es significativamente menor pregunta esta bien este analisis de polinomios?
+
+```{r}
+m20<-lm(log(duration)~poly(campaign,2)+poly(pdays,2),data=df)
+summary(m20)
+Anova(m20)
 ```
 
 
 
-Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
+# Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
 
 Explicative Variables for modeling purposes are those available in dataset, exceptions will be indicated, if any.
 
