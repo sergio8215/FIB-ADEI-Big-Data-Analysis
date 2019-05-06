@@ -34,8 +34,8 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 
 ```{r include=FALSE}
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 rm(list=ls())
 load("data-INI2.RData")
@@ -65,7 +65,7 @@ load("data-INI2.RData")
     *   Bank marketing history: pdays, previous, poutcome.
     *   Economic vars: emp.var.rate, cons.price.index, cons.conf.index, euribor3m, number employed.
 
-Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuales de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas. Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes, seguidamente comprobamos nuestra selección usando el step.
+Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas. Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.
 
 ```{r}
 m1<-lm(duration~.,data=df[,c("duration",vars_num)])
@@ -73,10 +73,11 @@ summary(m1)
 Anova(m1)
 ```
 
-Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393 preguntar (que es r-square)
+Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393 preguntar (que es r-square, que si es la suma de cuadrados de los residuos, esta debe ser cuanto menos mejor??)
 
-Al ver el resultado de Anova, podemos ver resultados muy parecidos preguntar (diferencia de Anova y summary)
-    
+Al ver el resultado de Anova, podemos ver resultados muy parecidos preguntar (diferencia de Anova y summary, ya que nos dan Pr prácticamente iguales)
+
+Ahora probaremos selecionando las variables a partir de la criba anterior:
 ```{r}
 m2<-lm(duration~campaign+pdays+previous,data=df)
 summary(m2)
@@ -95,15 +96,15 @@ par(mfrow=c(1,1))
 m=m3;
 ```
 
-Viendo el resultado del lm con estas variables, podemos ver que previous da por encima de 0.2, por lo que descartamos esta variable.
+Viendo el resultado del lm con estas variables, podemos ver que previous da por encima de 0.2, por lo que también descartamos esta variable.
 
-Al realizar nuevamente el lm con estas dos variables restantes, vemos que su p-value es inferior al 0.1, por lo que decidimos quedarnos con estas dos variables.
+Al realizar nuevamente el lm con estas dos variables restantes, vemos que su p-value es inferior al 0.1, por lo que daríamos por concluida la criba.
 
-Ahora procedemos a comprobar el resultado usando el step, conocido como Akaike.
+Finalmente hacemos el análisis de residuos con vif, el cual nos dice que si nos da valores por debajo de 3 son buenos y por encima de 5 que las variables elegidas tienen redundancia y que inflará las varianzas. En nuestro caso, el resultado de las dos variables es inferior a 3.
 
-Hacemos el análisis de residuos con vif, el cual nos dice que si nos da valores por debajo de 3 son buenos y si nos da por encima de 5 quiere decir que las variables elejidas tienen redundancia y que inflará las varianzas. En nuestro caso, el resultado de las dos variables es inferior a 3.
+Viendo el plot de la normal Q-Q, vemos que los valores distan mucho de la recta de referencia, con que podemos decir que su distribución no es para nada normal.
 
-Viendo el plota de la normal Q-Q, vemos que los valores distan mucho de la recta de referencia, con que podemos decir que su distribución no es para nada normal.
+Ahora procederemos a comprobar el resultado usando la función step, conocida como Akaike o BIC.
 
 ```{r}
 m4<-step(m1) # preguntar porque no quita mas? y porque da diferente al nuestro
@@ -113,12 +114,11 @@ plot(m4)
 par(mfrow=c(1,1))
 ```
 
-Podemos ver que el Akaike ha conservado las dos variables que nosotros hemos decidido dejar.
+En contraste a nuestra selección (pdays y campign), Akaike ha decidido conservar 5 variables. Aún así, podemos ver que el Akaike ha conservado las dos variables que nosotros hemos decidido dejar.
 
-Hacemos el análisis de residuos con vif. En nuestro caso, el resultado de las 5 variables es inferior a 3.
+Hacemos el análisis de residuos con vif. En nuestro caso, el resultado de las 5 variables es inferior a 3. Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist normal.
 
-Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist normal.
-
+Si probamos con la versión bayesiana (del BIC):
 ```{r}
 m5<-step(m1,k=log(nrow(df)))
 
@@ -127,13 +127,13 @@ plot(m5)
 par(mfrow=c(1,1))
 ```
 
-Si usamos la versión bayesiana (del BIC), la cual es conveniente usar en casos con muestras grandes, se queda solo con una sola variable (campaign) preguntar ya que el enunciado dice que nos quedemos por lo menos con dos.
+La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign). preguntar ya que el enunciado dice que nos quedemos por lo menos con dos.
 
 En este caso no podemos hacer el análisis de residuos con vif porque solo tenemos 1 variable.
 
 Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist normal.
 
-
+Ahora procedemos a la transformación polinómica:
 ```{r}
 boxcox(m,data=df)  #lambda 0 <- log(Y)
 
@@ -152,17 +152,17 @@ plot(m7)
 par(mfrow=c(1,1))
 ```
 
-Aplicando el logaritmo, lo que estamos haciendo es la transformación.
+Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1 y bastante cerca del 0. No se obserban mejoras relevantes.
 
-Vemos que para emp.var.rate, nos resulta util usar su versión polinomica al cuadrado, ya que el p-value es significativamente menor pregunta esta bien este analisis de polinomios?
-
+Ahora podemos probar con las versiones cuadráticas de las variables explicativas:
 ```{r}
 m20<-lm(log(duration)~poly(campaign,2)+poly(pdays,2),data=df)
 summary(m20)
 Anova(m20)
 ```
-
-
+%%%%%%% GUILLEM - Revisar ya que no aparece la variable emp.var.rate!!!!!!!!!!!!!
+Vemos que para emp.var.rate, nos resulta útil usar su versión polinomica al cuadrado, ya que el p-value es significativamente menor. pregunta esta bien este analisis de polinomios?
+%%%%%%%
 
 # Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
 
