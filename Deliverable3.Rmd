@@ -34,8 +34,8 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 
 ```{r include=FALSE}
-#setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
 
 rm(list=ls())
 load("data-INI2.RData")
@@ -61,7 +61,7 @@ load("data-INI2.RData")
 # Clasificación de las variables (modeling I y II).
     *   Variable Target "duration"
     *   Socio económicas: age, job, marital, education, default, housing, loan
-    *   Activity in the current commercial campaign: Month, day of the week, duration, campaing, pdays(? preguntar), previous(? preguntar).
+    *   Activity in the current commercial campaign: Month, day of the week, duration, campaing, pdays(? preguntar), previous(? preguntar).  
     *   Bank marketing history: pdays, previous, poutcome.
     *   Economic vars: emp.var.rate, cons.price.index, cons.conf.index, euribor3m, number employed.
 
@@ -73,9 +73,18 @@ summary(m1)
 Anova(m1)
 ```
 
-Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393 preguntar (que es r-square, que si es la suma de cuadrados de los residuos, esta debe ser cuanto menos mejor??)
+Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393
+# preguntar (que es r-square, que si es la suma de cuadrados de los residuos, esta debe ser cuanto menos mejor??) : multiple r-qsuare porque esta elevado al cuadrado, R:multiple R que quiere decir de la correlacon que tiene nuestro target con las predicciones de un modelo, eso seria el multple r. R^2=cor^2(y,y^y), Minetras el r-square es mayor quiere decir que nuestro modelo se ajusta bien por lo que es bueno, tiende a 1. No es importante si es negativo, lo que importa es la correlacion y ya esta. El ser negativo es irrelevante.  
+#nos interesa que RSS sea lo mas pequeño posible y eso sera cuando la R2 sea lo mas grande posible. TSS(Total sum squares) este es con la mediana muestral del target, que se puede dividir por n si se quiere saber la variabilidad del target, da como resultado una estimacion de la varianza del target. Un estimador de una varianza de una variable sera esto.
+# TSS = RSS(Nos interesa que sea muy prqueño para que nuestro modelo sea grande y quiere decir que el modelo es bueno) + ESS(Suma de cuadrados explicada. )-> esto es una suma de cuadrados que se tiene explicado en los slides de teoria.  El TSS esta relacionado con la variabilidad del target, el target debemos explicarlo con un modelo que nos..
+# la formula y=Xb+E es importante para explicar el modelo. El epsilon es la parte residual que no esta en el modelo (es el residuo? si y no, tecnicamente no, pero conceptualmente si) esta formula se interpreta de forma conceptual0
+
+
 
 Al ver el resultado de Anova, podemos ver resultados muy parecidos preguntar (diferencia de Anova y summary, ya que nos dan Pr prácticamente iguales)
+# En estos casos no hay diferencia, pero en otros modelos como el de poly da diferentes de la clase del 3, el m20. En este caso es dif porque hay variables explicaticas que ponems en el modelo. Por ejemplo para ese estamos usando em.var.rate como pol. El metodo Anova si identifica que estas dos var estan relacionadas.(algo asi) el summary no lo podemos mirar si tenemos variables explicativas de factores.
+
+# funcon predict para tener resultados dado un modelo.
 
 Ahora probaremos selecionando las variables a partir de la criba anterior:
 ```{r}
@@ -127,7 +136,7 @@ plot(m5)
 par(mfrow=c(1,1))
 ```
 
-La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign). preguntar ya que el enunciado dice que nos quedemos por lo menos con dos.
+La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign). preguntar ya que el enunciado dice que nos quedemos por lo menos con dos. (podemos usar Bic en vez del otro )
 
 En este caso no podemos hacer el análisis de residuos con vif porque solo tenemos 1 variable.
 
@@ -140,7 +149,7 @@ boxcox(m,data=df)  #lambda 0 <- log(Y)
 m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)])
 Anova(m6)
 
-m7<-lm(log(duration)~campaign+pdays+nr.employed+euribor3m,data=df) # preguntar porque el vif da mas de 5, hay que quitar euribor o employed, si quitamos una la otra sube su pvalor.
+m7<-lm(log(duration)~campaign+pdays+nr.employed+euribor3m,data=df) # preguntar porque el vif da mas de 5, hay que quitar euribor o employed, si quitamos una la otra sube su pvalor. (si hay que sacar una porque si asi aunmente el pvalor)
 
 summary(m7)
 Anova(m7)
@@ -149,7 +158,7 @@ vif(m7)
 
 par(mfrow=c(2,2))
 plot(m7)
-par(mfrow=c(1,1))
+par(mfrow=c(1,1)) # problema de escala en standar resd pero como ya esta la vatiable transsformada no se pued hacer mas
 ```
 
 Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1 y bastante cerca del 0. No se obserban mejoras relevantes.
@@ -159,10 +168,18 @@ Ahora podemos probar con las versiones cuadráticas de las variables explicativas
 m20<-lm(log(duration)~poly(campaign,2)+poly(pdays,2),data=df)
 summary(m20)
 Anova(m20)
+vif(m20)
+# la duration no teiene nada que ver ocn las numericas
 ```
 %%%%%%% GUILLEM - Revisar ya que no aparece la variable emp.var.rate!!!!!!!!!!!!!
-Vemos que para emp.var.rate, nos resulta útil usar su versión polinomica al cuadrado, ya que el p-value es significativamente menor. pregunta esta bien este analisis de polinomios?
+Vemos que para emp.var.rate, nos resulta útil usar su versión polinomica al cuadrado, ya que el p-value es significativamente menor. preguntar esta bien este analisis de polinomios? si los terminos cuadratircos son significativos
 %%%%%%%
+# practuca en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
+
+# falta introducir todos los factores y repetir los procesos, falta mucho.
+# podemos avanzar mas en sentirnos comodos en analisis de datos influentes.
+# el analisis se hacee s al final cuando se tienen todas las caiables posibles unericas y factores.
+
 
 # Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
 
