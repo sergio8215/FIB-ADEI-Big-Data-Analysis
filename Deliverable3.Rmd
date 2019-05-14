@@ -61,19 +61,21 @@ load("data-INI2.RData")
 # Clasificación de las variables (modeling I y II).
     *   Variable Target "duration"
     *   Socio económicas: age, job, marital, education, default, housing, loan
-    *   Activity in the current commercial campaign: Month, day of the week, duration, campaing, pdays(? preguntar), previous(? preguntar).  
+    *   Activity in the current commercial campaign: Month, day of the week, duration, campaing, pdays, previous.  
     *   Bank marketing history: pdays, previous, poutcome.
     *   Economic vars: emp.var.rate, cons.price.index, cons.conf.index, euribor3m, number employed.
 
-Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas. Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.
+El primer paso es decidir con cuantas variables contamos para el modelo. Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas. Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.
 
 ```{r}
+# chunk 10
 m1<-lm(duration~.,data=df[,c("duration",vars_num)])
 summary(m1)
 Anova(m1)
 ```
 
-Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393
+Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393 lo que nos dice que nuestro modelo no se ajusta bien.
+
 # preguntar (que es r-square, que si es la suma de cuadrados de los residuos, esta debe ser cuanto menos mejor??) : multiple r-qsuare porque esta elevado al cuadrado, R:multiple R que quiere decir de la correlacon que tiene nuestro target con las predicciones de un modelo, eso seria el multple r. R^2=cor^2(y,y^y), Minetras el r-square es mayor quiere decir que nuestro modelo se ajusta bien por lo que es bueno, tiende a 1. No es importante si es negativo, lo que importa es la correlacion y ya esta. El ser negativo es irrelevante.  
 #nos interesa que RSS sea lo mas pequeño posible y eso sera cuando la R2 sea lo mas grande posible. TSS(Total sum squares) este es con la mediana muestral del target, que se puede dividir por n si se quiere saber la variabilidad del target, da como resultado una estimacion de la varianza del target. Un estimador de una varianza de una variable sera esto.
 # TSS = RSS(Nos interesa que sea muy prqueño para que nuestro modelo sea grande y quiere decir que el modelo es bueno) + ESS(Suma de cuadrados explicada. )-> esto es una suma de cuadrados que se tiene explicado en los slides de teoria.  El TSS esta relacionado con la variabilidad del target, el target debemos explicarlo con un modelo que nos..
@@ -87,7 +89,9 @@ Al ver el resultado de Anova, podemos ver resultados muy parecidos preguntar (di
 # funcon predict para tener resultados dado un modelo.
 
 Ahora probaremos selecionando las variables a partir de la criba anterior:
+
 ```{r}
+# chunk 20
 m2<-lm(duration~campaign+pdays+previous,data=df)
 summary(m2)
 Anova(m2)
@@ -105,7 +109,7 @@ par(mfrow=c(1,1))
 m=m3;
 ```
 
-Viendo el resultado del lm con estas variables, podemos ver que previous da por encima de 0.2, por lo que también descartamos esta variable.
+Viendo el resultado del lm con estas variables, podemos ver que previous da por encima de 0.2, por lo que también descartamos esta variable. Tambien podemos ver que el r-square sigue siendo muy bajo.
 
 Al realizar nuevamente el lm con estas dos variables restantes, vemos que su p-value es inferior al 0.1, por lo que daríamos por concluida la criba.
 
@@ -113,11 +117,14 @@ Finalmente hacemos el análisis de residuos con vif, el cual nos dice que si nos 
 
 Viendo el plot de la normal Q-Q, vemos que los valores distan mucho de la recta de referencia, con que podemos decir que su distribución no es para nada normal.
 
+
 Ahora procederemos a comprobar el resultado usando la función step, conocida como Akaike o BIC.
 
 ```{r}
-m4<-step(m1) # preguntar porque no quita mas? y porque da diferente al nuestro
+# chunk 30
+m4<-step(m1)
 vif(m4)
+summary(m4)
 par(mfrow=c(2,2))
 plot(m4)
 par(mfrow=c(1,1))
@@ -129,56 +136,115 @@ Hacemos el análisis de residuos con vif. En nuestro caso, el resultado de las 5 
 
 Si probamos con la versión bayesiana (del BIC):
 ```{r}
+# chunk 40
 m5<-step(m1,k=log(nrow(df)))
-
+summary(m5)
 par(mfrow=c(2,2))
 plot(m5)
 par(mfrow=c(1,1))
 ```
 
-La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign). preguntar ya que el enunciado dice que nos quedemos por lo menos con dos. (podemos usar Bic en vez del otro )
+La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign).
 
 En este caso no podemos hacer el análisis de residuos con vif porque solo tenemos 1 variable.
 
 Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist normal.
 
+
+Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1 y bastante cerca del 0.
+```{r}
+# chunk 50
+boxcox(m,data=df)  #lambda 0 <- log(Y)
+```
+
+
 Ahora procedemos a la transformación polinómica:
 ```{r}
-boxcox(m,data=df)  #lambda 0 <- log(Y)
-
+# chunk 60
 m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)])
+# m6<-lm(log(duration)~campaign+pdays,data=df)
 Anova(m6)
+```
 
-m7<-lm(log(duration)~campaign+pdays+nr.employed+euribor3m,data=df) # preguntar porque el vif da mas de 5, hay que quitar euribor o employed, si quitamos una la otra sube su pvalor. (si hay que sacar una porque si asi aunmente el pvalor)
+Viendo el resultado del Anova, procedemos a descartar las variables cuyo valor de Pr es mayor a 0.1
 
+```{r}
+# chunk 70
+m7<-lm(log(duration)~campaign+pdays+nr.employed+euribor3m,data=df)
 summary(m7)
 Anova(m7)
-
 vif(m7)
 
 par(mfrow=c(2,2))
 plot(m7)
+par(mfrow=c(1,1)) # problema de escala en standar resd pero como ya esta la variable transsformada no se pued hacer mas
+```
+Al hacer vif, podemos ver que nr.employed y euribor3m, tienen valores mayores de 5, lo que nos dice que hay redundancia entre estas variables por lo que procedemos a quitar la que tiene mayot Pr (euribor3m).
+
+Relativo al grafico, podemos ver como la Normal Q-Q ha mejorado bastante acercandose a la recta ideal.
+
+```{r}
+# chunk 80
+m8<-lm(log(duration)~campaign+pdays+nr.employed,data=df)
+summary(m8)
+Anova(m8)
+vif(m8)
+
+par(mfrow=c(2,2))
+plot(m8)
 par(mfrow=c(1,1)) # problema de escala en standar resd pero como ya esta la vatiable transsformada no se pued hacer mas
 ```
+Ahora al hacer vif con las nuevas variables vemos que los valores dan menores de 3, pero el Pr de employed es mayor a 0.1, por que decidimos a sacarla.
 
-Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1 y bastante cerca del 0. No se obserban mejoras relevantes.
+No se ve mucha diferencia respecto a el grafico de m7.
+
+Ahora procedemos quitando nr.employed.
+```{r}
+# chunk 90
+m9<-lm(log(duration)~campaign+pdays,data=df)
+summary(m9)
+Anova(m9)
+vif(m9)
+
+par(mfrow=c(2,2))
+plot(m9)
+par(mfrow=c(1,1))
+```
+Viendo el valor final del r-square, podemos ver que este no es un buen modelo. Tambien los que no puede decir es que las variables no representan a nuestro target, estoy ya lo pudimos ver en el deliverable2.
+
 
 Ahora podemos probar con las versiones cuadráticas de las variables explicativas:
 ```{r}
+# chunk 100
 m20<-lm(log(duration)~poly(campaign,2)+poly(pdays,2),data=df)
 summary(m20)
 Anova(m20)
 vif(m20)
+par(mfrow=c(2,2))
+plot(m20)
+par(mfrow=c(1,1))
 # la duration no teiene nada que ver ocn las numericas
 ```
-%%%%%%% GUILLEM - Revisar ya que no aparece la variable emp.var.rate!!!!!!!!!!!!!
-Vemos que para emp.var.rate, nos resulta útil usar su versión polinomica al cuadrado, ya que el p-value es significativamente menor. preguntar esta bien este analisis de polinomios? si los terminos cuadratircos son significativos
-%%%%%%%
-# practuca en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
+
+# practica en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
 
 # falta introducir todos los factores y repetir los procesos, falta mucho.
 # podemos avanzar mas en sentirnos comodos en analisis de datos influentes.
 # el analisis se hacee s al final cuando se tienen todas las caiables posibles unericas y factores.
+
+
+## Multivariant Analysis conducted in previous deliverables has to be used to select the initial model. Students have some degrees in freedom in model building, but the following conditions are requested:
+
+
+	* Select the most significant factors found in Multivariant Data Analysis as initial model factors.  Put some reasonable limits to initial model complexity.
+	* You have to consider at least one interaction between a couple of factors and one interaction between factor and covariate.
+	* Diagnostics of the final model have to be undertaken. Lack of fit observations and influence data have to be selected and discussed (connections to multidimensional outliers in Multivariant Data Analysis is highly valuable)
+
+```{r}
+
+
+
+```
 
 
 # Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
