@@ -240,10 +240,31 @@ par(mfrow=c(1,1))
 	* You have to consider at least one interaction between a couple of factors and one interaction between factor and covariate.
 	* Diagnostics of the final model have to be undertaken. Lack of fit observations and influence data have to be selected and discussed (connections to multidimensional outliers in Multivariant Data Analysis is highly valuable)
 
+
+Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si estan afectando nuestro resultado.
 ```{r}
+# chunk 110
+matplot(dfbetas(m9), type="l", col=2:4,lwd=2)
+Boxplot(cooks.distance(m9))
+coef(m9)
 
+# Sin los individuos que más afectan 
+#m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,])
+m9m<-lm(log(duration)~campaign+pdays,data=df[c(-3660,-4185,-2216),])
+Boxplot(cooks.distance(m9m))
+coef(m9m)
+```
 
-
+```{r}
+# chunk 120
+# Y ~ A   Yes
+m21<-lm(duration~1,data=df[])
+summary(m21)
+m22<-lm(duration~.,data=df[,c("duration","y",vars_cat)])
+model.matrix(m22)
+summary(m22)
+Anova(m22)
+anova(m21,m22) # Fisher test - Hauria de funcionar
 ```
 
 
