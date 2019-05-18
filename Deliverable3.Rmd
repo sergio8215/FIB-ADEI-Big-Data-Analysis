@@ -99,7 +99,7 @@ Anova(m2)
 m3<-lm(duration~campaign+pdays,data=df)
 summary(m3)
 Anova(m3)
-
+# tomar decision con el step si quedamos con estas variables no. congraciar los dis puntos de vista del step y estte
 vif(m3)
 
 par(mfrow=c(2,2))
@@ -155,13 +155,14 @@ Mediante la función boxcox descartamos la posibilidad de elevar el target al cua
 ```{r}
 # chunk 50
 boxcox(m,data=df)  #lambda 0 <- log(Y)
+# se hace a partir de u cierto modelo, es informativo. En nuestr caso particular podemos empezar oc el boxcox
 ```
 
 
 Ahora procedemos a la transformación polinómica:
 ```{r}
 # chunk 60
-m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)])
+m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)]) # como solo tenemos dos variables explicativas podemos empezar desde cero pero si tuvieramos ya n modelo no volvieramos a empezar
 # m6<-lm(log(duration)~campaign+pdays,data=df)
 Anova(m6)
 ```
@@ -249,24 +250,19 @@ Boxplot(cooks.distance(m9))
 coef(m9)
 
 # Sin los individuos que más afectan 
-#m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,])
-m9m<-lm(log(duration)~campaign+pdays,data=df[c(-3660,-4185,-2216),])
+m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
 Boxplot(cooks.distance(m9m))
 coef(m9m)
 ```
+Consideramos que hay un individuo que repercute demasiado en los datos, aún así no lo eliminaremos hasta el final.
+
 
 ```{r}
 # chunk 120
-# Y ~ A   Yes
-m21<-lm(duration~1,data=df[])
-summary(m21)
-m22<-lm(duration~.,data=df[,c("duration","y",vars_cat)])
-model.matrix(m22)
-summary(m22)
-Anova(m22)
-anova(m21,m22) # Fisher test - Hauria de funcionar
+vars_cat_total = c(vars_cat, names(df[,22:29])) # creamos una vars_cat con las  categorias factorizadas
+condes(df[,c("duration",vars_cat_total)],1, proba= 0.01)
 ```
-
+Al hacer condes, con todas las variables categoricas, contemplamos el uso de f.duration, f.campaign, months, para nuestro modelo ya que la probabilidad de que no tengan relaión con el target esta por debajo del 0.01.
 
 # Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
 
@@ -284,7 +280,8 @@ Multivariant Analysis conducted in previous deliverables has to be used to selec
     *Make a confusion matrix in the Testing Data Frame for  Y  (Binary Target) according to the best validated model found.
 
 ```{r}
-
+#en clase
+  
 ```
 
 
