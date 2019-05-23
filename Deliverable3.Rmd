@@ -34,8 +34,11 @@ lapply(requiredPackages, require, character.only = TRUE)
 
 
 ```{r include=FALSE}
-setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
-#setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+if(Sys.info()[[4]]=="PORT_ELISABET"){
+  setwd("C:/Users/usuario/Documents/ADEI/FIB-ADEI-Big-Data-Analysis")
+}else{
+  setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
+}
 
 rm(list=ls())
 load("data-INI2.RData")
