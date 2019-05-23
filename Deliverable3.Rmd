@@ -68,7 +68,7 @@ load("data-INI2.RData")
     *   Bank marketing history: pdays, previous, poutcome.
     *   Economic vars: emp.var.rate, cons.price.index, cons.conf.index, euribor3m, number employed.
 
-El primer paso es decidir con cuantas variables contamos para el modelo. Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas. Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.
+El primer paso es decidir con cuantas variables contamos para el modelo. Si tuviéramos muchas variables explicativas podríamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas. Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes.Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.#!No hay que contrastar, después de aplicar un método aplicamos el step para seguir cribando#
 
 ```{r}
 # chunk 10
