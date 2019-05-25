@@ -45,9 +45,9 @@ load("data-INI2.RData")
 ```
 
 
-El primer paso es decidir con cuantas variables contamos para el modelo. Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuï¿½les de ellas utilizar, aunque tambiï¿½n serï¿½a posible seleccionarlas a partir del anï¿½lisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas.   
+El primer paso es decidir con cuantas variables contamos para el modelo. Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas.   
 
-Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Despuï¿½s contrastaremos nuestra selecciï¿½n usando el mï¿½todo Akaike o BIC, que en una sucesiï¿½n de pasos va descartando variables.
+Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables. #preguntar lo contrastamos con el akaike o nuestro resultado del modelo usamos akaike.
 
 ```{r}
 # chunk 10
@@ -60,7 +60,7 @@ Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-v
 
 Al ver el resultado de Anova, podemos ver resultados muy parecidos.
 
-Ahora probaremos seleccionando las variables a partir de la criba anterior:
+Ahora probaremos seleccionando las variables a partir de la criba anterior: #preguntar diferencia summary y Anova, sabemos que el Anova nos dice para cada variable la probabilidad de que el modelo sea igual con o sin esta variable mediante el p-value, entonces que nos dice el summary de difernte?
 
 ```{r}
 # chunk 20
@@ -79,25 +79,25 @@ par(mfrow=c(1,1))
 m=m3;
 ```
 
-Viendo el resultado del lm con estas variables, podemos ver que previous da por encima de 0.2, por lo que tambiï¿½n descartamos esta variable. Tambien podemos ver que el r-square sigue siendo muy bajo.
+Viendo el resultado del lm con estas variables, podemos ver que previous da por encima de 0.2, por lo que también descartamos esta variable. También podemos ver que el r-square sigue siendo muy bajo.
 
-Al realizar nuevamente el lm con estas dos variables restantes, vemos que su p-value es inferior al 0.1, por lo que darï¿½amos por concluida la criba.
+Al realizar nuevamente el lm con estas dos variables restantes, vemos que su p-value es inferior al 0.1, por lo que daríamos por concluida la criba.
 
-Finalmente hacemos el anï¿½lisis de residuos con vif, el cual nos dice que si nos da valores por debajo de 3 son buenos y por encima de 5 que las variables elegidas tienen redundancia y que inflarï¿½ las varianzas. En nuestro caso, el resultado de las dos variables es inferior a 3.
+Finalmente hacemos el análisis de residuos con vif, el cual  nos dice si existen problemas de colinealidad es decir si existen variables que pueden explicar a otras. Si nos da valores por debajo de 3 son buenos y por encima de 5 que las variables elegidas tienen redundancia y que inflará las varianzas. En nuestro caso, el resultado de las dos variables es inferior a 3.
 
-Viendo el plot de la normal Q-Q, vemos que los valores distan mucho de la recta de referencia, con que podemos decir que su distribuciï¿½n no es para nada normal.
+Viendo el plot de la normal Q-Q, vemos que los valores distan mucho de la recta de referencia, con que podemos decir que su distribución no es para nada normal.
 
 
-Ahora procederemos a comprobar el resultado usando la funciï¿½n step, conocida como Akaike o BIC.
+Ahora procederemos a comprobar el resultado usando la función step, conocida como Akaike o BIC.
 
 ```{r}
 # chunk 30
 m4<-step(m)
 ```
-Al aplicar el metodo step, vemos que no hace niguna criba mï¿½s y se queda con el mismo modelo que ya nosotros habiamos cribado. 
+Al aplicar el metodo step, vemos que no hace niguna criba más y se queda con el mismo modelo que ya nosotros habiamos cribado. 
 
 
-Si probamos con la versiï¿½n bayesiana (del BIC):
+Si probamos con la versión bayesiana (del BIC):
 ```{r}
 # chunk 40
 m5<-step(m,k=log(nrow(df)))
@@ -107,23 +107,22 @@ plot(m5)
 par(mfrow=c(1,1))
 ```
 
-La versiï¿½n bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign), ya que el p-value de pdays es mayor a 0.05.
+La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign), ya que en el primer step del volcado vemos que sin la variable p-days el valor AIC, en este caso BIC, es menor.
 
-En este caso no podemos hacer el anï¿½lisis de residuos con vif porque solo tenemos 1 variable.
+En este caso no podemos hacer el análisis de residuos con vif porque solo tenemos 1 variable.
 
 Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist normal.
 
 
-Mediante la funciï¿½n boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sï¿½ contemplamos aplicarle el logaritmo, pues el pico de la curva estï¿½ entre 0 y 1 y bastante cerca del 0.
+Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1, bastante cerca del 0.
 ```{r}
 # chunk 50
 boxcox(m,data=df)
 ```
 
+Ahora procedemos a la transformación polinómica.  
 
-Ahora procedemos a la transformaciï¿½n polinï¿½mica.  
-
-Como solo tenemos una variable explicativa podemos empezar desde cero pero si tuviï¿½ramos ya un modelo no volverï¿½amos a empezar.
+Como solo tenemos una variable explicativa podemos empezar desde cero pero si tuviéramos ya un modelo no volveríamos a empezar.
 ```{r}
 # chunk 60
 m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)]) 
@@ -134,36 +133,21 @@ Viendo el resultado del Anova, procedemos a descartar las variables cuyo valor d
 
 ```{r}
 # chunk 70
-m7<-lm(log(duration)~campaign+pdays+nr.employed+euribor3m,data=df)
+m7<-lm(log(duration)~campaign+pdays+nr.employed,data=df)
 summary(m7)
 Anova(m7)
-vif(m7)
 
 par(mfrow=c(2,2))
 plot(m7)
 par(mfrow=c(1,1))
 ```
-Al hacer vif, podemos ver que nr.employed y euribor3m, tienen valores mayores de 5, lo que nos dice que hay redundancia entre estas variables por lo que procedemos a quitar la que tiene mayot Pr (euribor3m).
+Viendo los p-values, nos encontramos que la variable nr.employed es mayor a 0.1, por lo que procedemos a eliminarla de nuestro modelo.
 
-Relativo al grï¿½fico, podemos ver como la Normal Q-Q ha mejorado bastante acercandose a la recta ideal.
-
-```{r}
-# chunk 80
-m8<-lm(log(duration)~campaign+pdays+nr.employed,data=df)
-summary(m8)
-Anova(m8)
-vif(m8)
-par(mfrow=c(2,2))
-plot(m8)
-par(mfrow=c(1,1))
-```
-Ahora al hacer vif con las nuevas variables vemos que los valores dan menores de 3, pero el Pr de employed es mayor a 0.1, por que decidimos sacarla.
-
-No se ve mucha diferencia respecto a el grafico de m7.
+Relativo al gráfico, podemos ver como la Normal Q-Q ha mejorado bastante acercandose a la recta ideal.
 
 Ahora procedemos a quitar nr.employed.
 ```{r}
-# chunk 90
+# chunk 80
 m9<-lm(log(duration)~campaign+pdays,data=df)
 summary(m9)
 Anova(m9)
@@ -173,12 +157,13 @@ par(mfrow=c(2,2))
 plot(m9)
 par(mfrow=c(1,1))
 ```
-Viendo el valor final del r-square, podemos ver que este no es un buen modelo. Tambien los que no puede decir es que las variables no representan a nuestro target, estoy ya lo pudimos ver en el deliverable2.
+Viendo el valor final del r-square, podemos ver que este no es un buen modelo. También los que no puede decir es que las variables no representan a nuestro target, esto ya lo pudimos ver en el deliverable2.
 
+El resultado del vif nos da valores aceptables, diciendo que no hay colinealidad entre variables.
 
-Ahora podemos probar con las versiones cuadrï¿½ticas de las variables explicativas:
+Ahora podemos probar con las versiones cuadráticas de las variables explicativas, partiendo de nuestro mejor modelo:
 ```{r}
-# chunk 100
+# chunk 90
 m20<-lm(log(duration)~poly(campaign,2)+poly(pdays,2),data=df)
 summary(m20)
 Anova(m20)
@@ -186,33 +171,37 @@ vif(m20)
 par(mfrow=c(2,2))
 plot(m20)
 par(mfrow=c(1,1))
+influencePlot(m20)
 ```
 
-# practica en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
+Analizando los gráficos:   
+  - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. En nuestro caso el resultado es aceptable.  
+  - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, es una recta bastante aceptable.  
+  - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line.  
+  - Residuals Vs Leverage.   # preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.
+  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente.
 
-Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen mï¿½s en nuestros datos para saber si estan afectando nuestro resultado.
+
+#preguntar practica en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
+
+Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si estan afectando nuestro resultado.
+```{r}
+# chunk 100
+matplot(dfbetas(m9), type="l", col=2:4,lwd=2)
+Boxplot(cooks.distance(m9)) #preguntar nos sale el 3660 pero en el grafico anterior no sale, porque? y si hay que quitarlo al final, porque al final?
+```
+Consideramos que hay un individuo que repercute demasiado en los datos, aún así no lo eliminaremos hasta el final.
+
+
 ```{r}
 # chunk 110
-matplot(dfbetas(m9), type="l", col=2:4,lwd=2)
-Boxplot(cooks.distance(m9))
-coef(m9)
-# Sin el individuo que mï¿½s afecta
-# m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
-Boxplot(cooks.distance(m9m))
-coef(m9m)
-```
-Consideramos que hay un individuo que repercute demasiado en los datos, aï¿½n asï¿½ no lo eliminaremos hasta el final.
-
-
-```{r}
-# chunk 120
 vars_cat_total = c(vars_cat, names(df[,22:29])) # creamos una vars_cat con las  categorias factorizadas
 condes(df[,c("duration",vars_cat_total)],1, proba= 0.01)
 ```
-Al hacer condes, con todas las variables categoricas, contemplamos el uso de f.campaign, month, para nuestro modelo ya que la probabilidad de que no tengan relaciï¿½n con el target esta por debajo del 0.01. Como nos sale la versiï¿½n categorica de campaign que tambiï¿½n nos sale en el modelo nï¿½merico, debemos elegir entre una u otra pero nunca las dos a la vez.
+Al hacer condes, con todas las variables categóricas, contemplamos el uso de f.campaign, month, para nuestro modelo ya que la probabilidad de que no tengan relaciï¿½n con el target esta por debajo del 0.01. Como nos sale la versiï¿½n categorica de campaign que tambiï¿½n nos sale en el modelo númerico, debemos elegir entre una u otra pero nunca las dos a la vez.
 
 
-En vista de que la variable nï¿½merica pdays aporta una informaciï¿½n errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una informaciï¿½n mï¿½s rigurosa, ya que se clasifican entre contactados y no contactados.
+En vista de que la variable númerica pdays aporta una informaciï¿½n errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una informaciï¿½n más rigurosa, ya que se clasifican entre contactados y no contactados.
 
 Contrastamos un modelo con campaign o con f.campaign
 
@@ -243,7 +232,10 @@ anova(m31,m30) # Fisher test - Priority to BIC criteria
 
 ```{r}
 # chunk 150
-
+# Sin el individuo que más afecta
+# m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
+Boxplot(cooks.distance(m9m))
+coef(m9m)
 ```
 
 # Interactions between numeric variables and factors
