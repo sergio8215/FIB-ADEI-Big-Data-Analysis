@@ -40,12 +40,12 @@ if(Sys.info()[[4]]=="PORT_ELISABET"){
   setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 }
 
-rm(list=ls())
+#rm(list=ls())
 load("data-INI2.RData")
 ```
 
 
-El primer paso es decidir con cuantas variables contamos para el modelo. Si tuvieramos muchas variables explicativas podriamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas.   
+El primer paso es decidir con cuantas variables contamos para el modelo. Si tuviéramos muchas variables explicativas podríamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas.   
 
 Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables. #preguntar lo contrastamos con el akaike o nuestro resultado del modelo usamos akaike.
 
@@ -56,11 +56,11 @@ summary(m1)
 Anova(m1)
 ```
 
-Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous estan por debajo de 0.1 lo que podriamos llegar a incorporarlas al modelo. El r-square es de 0.006393 lo que nos dice que nuestro modelo no se ajusta bien.
+Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-value superior al 0.05, sin embargo, pdays y previous están por debajo de 0.1 lo que podríamos llegar a incorporarlas al modelo. El r-square es de 0.006393 lo que nos dice que nuestro modelo no se ajusta bien.
 
 Al ver el resultado de Anova, podemos ver resultados muy parecidos.
 
-Ahora probaremos seleccionando las variables a partir de la criba anterior: #preguntar diferencia summary y Anova, sabemos que el Anova nos dice para cada variable la probabilidad de que el modelo sea igual con o sin esta variable mediante el p-value, entonces que nos dice el summary de difernte?
+Ahora probaremos seleccionando las variables a partir de la criba anterior: #preguntar diferencia summary y Anova, sabemos que el Anova nos dice para cada variable la probabilidad de que el modelo sea igual con o sin esta variable mediante el p-value, entonces que nos dice el summary de diferente?
 
 ```{r}
 # chunk 20
@@ -143,7 +143,7 @@ par(mfrow=c(1,1))
 ```
 Viendo los p-values, nos encontramos que la variable nr.employed es mayor a 0.1, por lo que procedemos a eliminarla de nuestro modelo.
 
-Relativo al gráfico, podemos ver como la Normal Q-Q ha mejorado bastante acercandose a la recta ideal.
+Relativo al gráfico, podemos ver como la Normal Q-Q ha mejorado bastante acercándose a la recta ideal.
 
 Ahora procedemos a quitar nr.employed.
 ```{r}
@@ -184,7 +184,7 @@ Analizando los gráficos:
 
 #preguntar practica en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
 
-Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si estan afectando nuestro resultado.
+Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
 ```{r}
 # chunk 100
 matplot(dfbetas(m9), type="l", col=2:4,lwd=2)
@@ -198,10 +198,10 @@ Consideramos que hay un individuo que repercute demasiado en los datos, aún as�
 vars_cat_total = c(vars_cat, names(df[,22:29])) # creamos una vars_cat con las  categorias factorizadas
 condes(df[,c("duration",vars_cat_total)],1, proba= 0.01)
 ```
-Al hacer condes, con todas las variables categóricas, contemplamos el uso de f.campaign, month, para nuestro modelo ya que la probabilidad de que no tengan relación con el target esta por debajo del 0.01. Como nos sale la versión categórica de campaign que también nos sale en el modelo númerico, debemos elegir entre una u otra pero nunca las dos a la vez.
+Al hacer condes, con todas las variables categóricas, contemplamos el uso de f.campaign, month, para nuestro modelo ya que la probabilidad de que no tengan relación con el target está por debajo del 0.01. Como nos sale la versión categórica de campaign que también nos sale en el modelo númerico, debemos elegir entre una u otra pero nunca las dos a la vez.
 
 
-En vista de que la variable númerica pdays aporta una informaciï¿½n errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una informaciï¿½n más rigurosa, ya que se clasifican entre contactados y no contactados.
+En vista de que la variable numérica pdays aporta una información errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una información más rigurosa, ya que se clasifican entre contactados y no contactados.
 
 Contrastamos un modelo con campaign o con f.campaign
 
@@ -233,7 +233,7 @@ anova(m31,m30) # Fisher test - Priority to BIC criteria
 ```{r}
 # chunk 150
 # Sin el individuo que más afecta
-# m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
+ m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
 Boxplot(cooks.distance(m9m))
 coef(m9m)
 ```
