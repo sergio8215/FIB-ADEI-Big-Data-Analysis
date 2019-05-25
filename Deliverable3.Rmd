@@ -40,7 +40,7 @@ if(Sys.info()[[4]]=="PORT_ELISABET"){
   setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 }
 
-rm(list=ls())
+#rm(list=ls())
 load("data-INI2.RData")
 ```
 
@@ -240,53 +240,3 @@ coef(m9m)
 ```
 
 # Interactions between numeric variables and factors
-
-```{r}
-# Exemple adhoc: Y ~X+A
-m40<-lm(log(duration)~campaign+contact,data=df)
-summary(m40)
-
-# Suport visual
-scatterplot(log(duration)~campaign|contact,data=df)
-
-# Interpretation of models through effects library
-library(effects)
-plot(allEffects(m40))
-
-m41<-lm(log(duration)~campaign*contact,data=df)
-summary(m41)
-
-# Are interactions significant?
-anova(m40,m41)  # pvalue << 0.05 -> H0 Rejected -> m41 X*A
-
-plot(allEffects(m41))
-```
-
-
-
-# Outcome/Target : A binary response variable (Binary Target) will be the response variable for Binary Regression Models included in Statistical Modeling Part III.
-
-Explicative Variables for modeling purposes are those available in dataset, exceptions will be indicated, if any.
-
-Multivariant Analysis conducted in previous deliverables has to be used to select the initial model. Students have some degrees in freedom in model building, but the following conditions are requested:
-
-    * Split the sample in work and test samples (consisting on a 80-20 split). Working data frame has to be used for model building purposes.
-
-    *At least two numerical variables have to be considered as explicative variables for initial steps in model building.
-    *Select the most significant factors according to feature selection as initial model factors.  Put some reasonable limits to initial model complexity.
-    
-    *You have to consider at least one interaction between a couple of factors and one interaction between factor and covariate.
-    *Diagnostics of the final model have to be undertaken. Lack of fit observations and influence data have to be selected and discussed (connections to multidimensional outliers in Multivariant Data Analysis is highly valuable).
-    *You have to predict Y (Binary Target)  in the Working Data Frame  vs the rest according to the best validated model that you can find and make a confusion matrix.
-    *Make a confusion matrix in the Testing Data Frame for  Y  (Binary Target) according to the best validated model found.
-
-```{r}
-#en clase
-#adding factors
-gm10<-glm(y~pdays+emp.var.rate+poly(previous,2)+cons.price.idx+campaign+cons.conf.idx,family=binomial,data=df)
-  
-```
-
-
-
-Confusion Matrix: When referring to the performance of a classification model, we are interested in the modelâs ability to correctly predict or separate the classes. When looking at the errors made by a classification model, the confusion matrix gives the full picture. Consider e.g. a three class problem with the classes A, and B. The confusion matrix shows how the predictions are made by the model. The rows correspond to the known class of the data, i.e. the labels in the data. The columns correspond to the predictions made by the model. The value of each of element in the matrix is the number of predictions made with the class corresponding to the column for examples with the correct value as represented by the row. Thus, the diagonal elements show the number of correct classifications made for each class, and the off-diagonal elements show the errors made.
