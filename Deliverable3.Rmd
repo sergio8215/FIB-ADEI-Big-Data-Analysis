@@ -40,7 +40,7 @@ if(Sys.info()[[4]]=="PORT_ELISABET"){
   setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 }
 
-#rm(list=ls())
+rm(list=ls())
 load("data-INI2.RData")
 ```
 
@@ -172,6 +172,7 @@ par(mfrow=c(2,2))
 plot(m20)
 par(mfrow=c(1,1))
 influencePlot(m20)
+marginalModelPlots(m20)
 ```
 
 Analizando los gráficos:   
@@ -179,7 +180,8 @@ Analizando los gráficos:
   - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, es una recta bastante aceptable.  
   - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line.  
   - Residuals Vs Leverage.   # preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.
-  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente.
+  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente.  
+  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. #preguntar el resultado del graifco, que en el primero la linea azul cae en picada al final
 
 
 #preguntar practica en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
@@ -193,20 +195,20 @@ Boxplot(cooks.distance(m9)) #preguntar nos sale el 3660 pero en el grafico anter
 Consideramos que hay un individuo que repercute demasiado en los datos, aún así no lo eliminaremos hasta el final.
 
 
+Creamos una variable que contiene las variables númericas y categóricas factorizadas además de las categóricas.
 ```{r}
 # chunk 110
-vars_cat_total = c(vars_cat, names(df[,22:29])) # creamos una vars_cat con las  categorias factorizadas
+vars_cat_total = c(vars_cat, names(df[,22:29]))
 condes(df[,c("duration",vars_cat_total)],1, proba= 0.01)
 ```
-Al hacer condes, con todas las variables categóricas, contemplamos el uso de f.campaign, month, para nuestro modelo ya que la probabilidad de que no tengan relación con el target está por debajo del 0.01. Como nos sale la versión categórica de campaign que también nos sale en el modelo númerico, debemos elegir entre una u otra pero nunca las dos a la vez.
+Al hacer condes, con todas las variables categóricas, contemplamos el uso de f.campaign y month para nuestro modelo, ya que la probabilidad de que no tengan relación con el target está por debajo del 0.01. Como nos sale la versión categórica de campaign que también nos sale en el modelo númerico, debemos elegir entre una u otra pero nunca las dos a la vez.  
 
+En vista de que la variable numérica pdays aporta una información errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una información más rigurosa, ya que se clasifican entre contactados y no contactados.  
 
-En vista de que la variable numérica pdays aporta una información errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una información más rigurosa, ya que se clasifican entre contactados y no contactados.
-
-Contrastamos un modelo con campaign o con f.campaign
+Contrastamos un modelo con campaign o con f.campaign para ver cual es mejor.
 
 ```{r}
-# chunk 130
+# chunk 120
 m22<-lm(log(duration)~campaign+f.pdays+month,data=df)
 m23<-lm(log(duration)~f.pdays+f.campaign+month,data=df)
 BIC(m23,m22)
@@ -219,10 +221,9 @@ Haciendo BIC para comparar modelos, podemos ver que el que da un menor BIC es m2
 
 
 ```{r}
-# chunk 140
+# chunk 130
 m30<-lm(log(duration)~(campaign+f.pdays+month)^2,data=df)  # preguntar que mejora se tiene con este modelo?
 summary(m30)
-coef(m30) # preguntar que hace el coef
 m31<-step(m30,k=log(nrow(df)))
 Anova(m31)
 anova(m31,m30) # Fisher test - Priority to BIC criteria
@@ -231,7 +232,7 @@ anova(m31,m30) # Fisher test - Priority to BIC criteria
 
 
 ```{r}
-# chunk 150
+# chunk 140
 # Sin el individuo que más afecta
  m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
 Boxplot(cooks.distance(m9m))
@@ -273,6 +274,7 @@ Multivariant Analysis conducted in previous deliverables has to be used to selec
 
     *At least two numerical variables have to be considered as explicative variables for initial steps in model building.
     *Select the most significant factors according to feature selection as initial model factors.  Put some reasonable limits to initial model complexity.
+    
     *You have to consider at least one interaction between a couple of factors and one interaction between factor and covariate.
     *Diagnostics of the final model have to be undertaken. Lack of fit observations and influence data have to be selected and discussed (connections to multidimensional outliers in Multivariant Data Analysis is highly valuable).
     *You have to predict Y (Binary Target)  in the Working Data Frame  vs the rest according to the best validated model that you can find and make a confusion matrix.
