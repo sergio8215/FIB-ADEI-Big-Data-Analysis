@@ -44,10 +44,15 @@ if(Sys.info()[[4]]=="PORT_ELISABET"){
 load("data-INI2.RData")
 ```
 
+# Modelización con target numérico
+
+## Modelización con variables explicativas numéricas
+
+### Modelo simple
 
 El primer paso es decidir con cuantas variables contamos para el modelo. Si tuviéramos muchas variables explicativas podríamos utilizar el resultado del condes para saber cuáles de ellas utilizar, aunque también sería posible seleccionarlas a partir del análisis de componentes principales. Dado que tenemos poca cantidad de variables usamos todas.   
 
-Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables. #preguntar lo contrastamos con el akaike o nuestro resultado del modelo usamos akaike.
+Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.
 
 ```{r}
 # chunk 10
@@ -113,6 +118,7 @@ En este caso no podemos hacer el análisis de residuos con vif porque solo tenem
 
 Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist normal.
 
+### Modelo con transformaciones
 
 Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1, bastante cerca del 0.
 ```{r}
@@ -161,6 +167,8 @@ Viendo el valor final del r-square, podemos ver que este no es un buen modelo. T
 
 El resultado del vif nos da valores aceptables, diciendo que no hay colinealidad entre variables.
 
+### Modelo de regresión polinómica
+
 Ahora podemos probar con las versiones cuadráticas de las variables explicativas, partiendo de nuestro mejor modelo:
 ```{r}
 # chunk 90
@@ -174,17 +182,14 @@ par(mfrow=c(1,1))
 influencePlot(m20)
 marginalModelPlots(m20)
 ```
-
+#pregunta la validacion la podemos hacer aqui o debe ser al final de este bloque.
 Analizando los gráficos:   
   - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. En nuestro caso el resultado es aceptable.  
   - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, es una recta bastante aceptable.  
   - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line.  
   - Residuals Vs Leverage.   # preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.
   - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente.  
-  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. #preguntar el resultado del graifco, que en el primero la linea azul cae en picada al final
-
-
-#preguntar practica en  influent data, para estar seguros que el tema del diagnostico, hacer diagnotistico, residual plot, marginal plot, influence plot, porque en algun moemtno hay que hacerlo, se ha explicado esta semana.
+  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. #preguntar el resultado del grafuco, que en el primero la linea azul cae en picada al final
 
 Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
 ```{r}
@@ -194,8 +199,9 @@ Boxplot(cooks.distance(m9)) #preguntar nos sale el 3660 pero en el grafico anter
 ```
 Consideramos que hay un individuo que repercute demasiado en los datos, aún así no lo eliminaremos hasta el final.
 
+## Modelización con variables explicativas numéricas y categóricas
 
-Creamos una variable que contiene las variables númericas y categóricas factorizadas además de las categóricas.
+Creamos una variable que contiene las variables categóricas y categóricas factorizadas además de las categóricas.
 ```{r}
 # chunk 110
 vars_cat_total = c(vars_cat, names(df[,22:29]))
@@ -218,11 +224,15 @@ Anova(m22)
 ```
 
 Haciendo BIC para comparar modelos, podemos ver que el que da un menor BIC es m22, por lo que decidimos quedarnos con este modelo.
+Viendo el resultado del Anova, podemos ver que los p-values son inferiores a 0.1
 
+## Interacciones
 
+#preguntar que significa hacer interaccion entre factor y covariate (esta en el enunciado tercer titulo en negritas).
+#preguntar se debe hacer asi? comparando el modelo con el step. Porque? cual cogemos usando el anova.
 ```{r}
 # chunk 130
-m30<-lm(log(duration)~(campaign+f.pdays+month)^2,data=df)  # preguntar que mejora se tiene con este modelo?
+m30<-lm(log(duration)~(campaign+f.pdays+month)^2,data=df)
 summary(m30)
 m31<-step(m30,k=log(nrow(df)))
 Anova(m31)
@@ -230,13 +240,94 @@ anova(m31,m30) # Fisher test - Priority to BIC criteria
 
 ```
 
+## Validación
 
 ```{r}
 # chunk 140
+par(mfrow=c(2,2))
+plot(m30)
+par(mfrow=c(1,1))
+```
+1- Residual Vs Fitted: Viendo la gráfica podemos ver que 
+2- Normal Q-Q: No se asemeja a la recta normal.
+3- Scale-Location: Parece ser un poco homocedastica
+4- Residual Vs Leverage:
+
+
+# Modelización con target binario
+
+Empezamos dividiendo nuestra muestra en una muestra de trabajo y una muestra de testeo, para ello seleccionaremos aleatoriamente el 25% de la muestra para crear la muestra de testeo.
+
+```{r}
+# chunk 150
+set.seed(19101990)
+sam <-sample(1:nrow(df),0.75*nrow(df)) 
+
+dfw<-df[sam,]
+dft<-df[-sam,]
+
+```
+
+## Modelización con variables explicativas numéricas
+
+
+Para empezar hacemos un catdes con todas las variables númericas para ver cuales son las que están más relacionadas con nuestro target.
+Las ultilizamos para hacer un modelo lineal general con variables explicativas numéricas. Este modelo es de la familia binomial ya que nuestro target es binario.
+```{r}
+# chunk 160
+catdes(dfw[,c("y",vars_num,"duration")],1) #pregunar hay que poner duration??  hay que poner todas las variables? nos salen con pvalue bajo
+gm1<-glm( y ~ 
+            duration +
+            nr.employed +
+            pdays +
+            euribor3m +
+            emp.var.rate +
+            previous +
+            cons.price.idx +
+            campaign +
+            age +
+            cons.conf.idx, family = binomial, data = dfw)
+summary(gm1)
+
+#preguntar se puede usar el step?
+#preguntar, no es necesario Anova aqui? cual es el mas indicado summary o Anova
+```
+
+Viendo el resultado de summary, podemos ver variables que tienen el p-value mayor a 0.1 (cons.cinf.idx, euribor3m), por lo que procedemos a quitarlas de nuestro modelo. 
+Podemos ver que el deviance es inferior al null deviance.
+
+```{r}
+gm2<-glm( y ~ 
+            duration +
+            nr.employed +
+            pdays +
+            emp.var.rate +
+            previous +
+            campaign +
+            age +
+            cons.conf.idx, family = binomial, data = dfw)
+vif(gm2)
+```
+
+Haciendo vif podemos ver que emp.var.rate 
+
+### Modelo simple
+### Modelo con transformaciones
+### Modelo de regresión polinómica
+## Modelización con variables explicativas numéricas y categóricas
+## Interacciones
+## Validación
+
+
+#preguntar en que momento quitar esta observacion
+```{r}
 # Sin el individuo que más afecta
  m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
 Boxplot(cooks.distance(m9m))
 coef(m9m)
 ```
 
-# Interactions between numeric variables and factors
+
+
+
+
