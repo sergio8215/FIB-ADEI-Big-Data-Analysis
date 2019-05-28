@@ -297,6 +297,7 @@ Viendo el resultado de summary, podemos ver variables que tienen el p-value mayo
 Podemos ver que el deviance es inferior al null deviance.
 
 ```{r}
+# chunk 170
 gm2<-glm( y ~ 
             duration +
             nr.employed +
@@ -309,7 +310,21 @@ gm2<-glm( y ~
 vif(gm2)
 ```
 
-Haciendo vif podemos ver que emp.var.rate 
+Haciendo vif podemos ver que emp.var.rate tiene un valor mayor a 3, por lo que decidmos sacarla de nuestro modelo.
+
+```{r}
+# chunk 180
+gm3<-glm( y ~ 
+            duration +
+            nr.employed +
+            pdays +
+            previous +
+            campaign +
+            age +
+            cons.conf.idx, family = binomial, data = dfw)
+vif(gm3)
+```
+
 
 ### Modelo simple
 ### Modelo con transformaciones
