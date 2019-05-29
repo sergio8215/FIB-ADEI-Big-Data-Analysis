@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, include=FALSE}
 # Load Required Packages: to be increased over the course
 
-requiredPackages <- c("mvoutlier","chemometrics","mice","missForest","missMDA","DMwR","pbkrtest","jomo","readxl","haven","sf","rgdal","missMDA","effects","FactoMineR","car","factoextra","RColorBrewer","ggplot2","dplyr","data.table", "ggmap","ggthemes","knitr","MVA","MASS")
+requiredPackages <- c("mvoutlier","chemometrics","mice","missForest","missMDA","DMwR","pbkrtest","jomo","readxl","haven","sf","rgdal","missMDA","effects","FactoMineR","car","factoextra","RColorBrewer","ggplot2","dplyr","data.table", "ggmap","ggthemes","knitr","MVA","MASS","ROCR")
 missingPackages <- requiredPackages[!(requiredPackages %in% as.vector(installed.packages(lib.loc="~/R/win-library/3.5")[,"Package"]))]
 
 if(length(missingPackages)) install.packages(missingPackages)
@@ -40,7 +40,7 @@ if(Sys.info()[[4]]=="PORT_ELISABET"){
   setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 }
 
-rm(list=ls())
+#rm(list=ls())
 load("data-INI2.RData")
 ```
 
@@ -55,7 +55,6 @@ El primer paso es decidir con cuantas variables contamos para el modelo. Si tuvi
 Empezamos utilizando lm para crear un modelo inicial del cual podemos ir descartando aquellas variables explicativas que nos parecen irrelevantes. Después contrastaremos nuestra selección usando el método Akaike o BIC, que en una sucesión de pasos va descartando variables.
 
 ```{r}
-# chunk 10
 m1<-lm(duration~.,data=df[,c("duration",vars_num)])
 summary(m1)
 Anova(m1)
@@ -68,7 +67,6 @@ Al ver el resultado de Anova, podemos ver resultados muy parecidos.
 Ahora probaremos seleccionando las variables a partir de la criba anterior:
 
 ```{r}
-# chunk 20
 m2<-lm(duration~campaign+pdays+previous,data=df)
 summary(m2)
 
@@ -92,7 +90,6 @@ Viendo el plot de la normal Q-Q, vemos que los valores distan mucho de la recta 
 
 Para quitar las variables redundantes probamos con la versión bayesiana del step (del BIC):
 ```{r}
-# chunk 40
 m5<-step(m,k=log(nrow(df)))
 summary(m5)
 par(mfrow=c(2,2))
@@ -110,7 +107,6 @@ Al igual que en nuestro caso nos da una plot Q-Q totalmente desviada de las dist
 
 Mediante la función boxcox descartamos la posibilidad de elevar el target al cuadrado, pero sí contemplamos aplicarle el logaritmo, pues el pico de la curva está entre 0 y 1, bastante cerca del 0.
 ```{r}
-# chunk 50
 boxcox(m,data=df)
 ```
 
@@ -118,7 +114,6 @@ Ahora procedemos a la transformación polinómica.
 
 Como solo tenemos una variable explicativa podemos empezar desde cero pero si tuviéramos ya un modelo no volveríamos a empezar.
 ```{r}
-# chunk 60
 m6<-lm(log(duration)~.,data=df[,c("duration",vars_num)]) 
 Anova(m6)
 ```
@@ -126,7 +121,6 @@ Anova(m6)
 Viendo el resultado del Anova, procedemos a descartar las variables cuyo valor de Pr es mayor a 0.1
 
 ```{r}
-# chunk 70
 m7<-lm(log(duration)~campaign+pdays+nr.employed,data=df)
 summary(m7)
 Anova(m7)
@@ -137,7 +131,6 @@ Relativo al gráfico, podemos ver como la Normal Q-Q ha mejorado bastante acerc�
 
 Ahora procedemos a quitar nr.employed.
 ```{r}
-# chunk 80
 m9<-lm(log(duration)~campaign+pdays,data=df)
 summary(m9)
 Anova(m9)
@@ -151,7 +144,6 @@ El resultado del vif nos da valores aceptables, diciendo que no hay colinealidad
 
 Ahora podemos probar con las versiones cuadráticas de las variables explicativas, partiendo de nuestro mejor modelo:
 ```{r}
-# chunk 90
 m20<-lm(log(duration)~poly(campaign,2)+poly(pdays,2),data=df)
 summary(m20)
 Anova(m20)
@@ -167,7 +159,6 @@ par(mfrow=c(1,1))
 
 Creamos una variable que contiene las variables categóricas y categóricas factorizadas además de las categóricas.
 ```{r}
-# chunk 110
 vars_cat_total = c(vars_cat, names(df[,22:29]))
 condes(df[,c("duration",vars_cat_total)],1, proba= 0.05)
 ```
@@ -203,7 +194,6 @@ summary(df$f.influentMonth)
 Contrastamos un modelo con campaign o con f.campaign para ver cual es mejor.
 
 ```{r}
-# chunk 120
 m22<-lm(log(duration)~campaign+f.pdays+f.influentMonth,data=df)
 m23<-lm(log(duration)~f.pdays+f.campaign+f.influentMonth,data=df)
 BIC(m23,m22)
@@ -218,7 +208,6 @@ Viendo el resultado del Anova, podemos ver que los p-values son inferiores a 0.1
 ## Interacciones
 
 ```{r}
-# chunk 130
 m30<-lm(log(duration)~(campaign+f.pdays+f.influentMonth)^2,data=df)
 Anova(m30)
 ```
@@ -238,7 +227,6 @@ Vemos que el modelo 31 es aceptable, sus p-values son aceptables, mientras como 
 ## Validación
 
 ```{r}
-# chunk 140
 par(mfrow=c(2,2))
 plot(m31)
 par(mfrow=c(1,1))
@@ -269,7 +257,6 @@ which(row.names(df)==27553)
 
 Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
 ```{r}
-# chunk 160
 matplot(dfbetas(m31), type="l", col=2:4,lwd=2)
 Boxplot(cooks.distance(m31))
 ```
@@ -292,7 +279,6 @@ Podemos ver que el nuevo modelo sin los individuos influyentes tiene una mejora 
 Empezamos dividiendo nuestra muestra en una muestra de trabajo y una muestra de testeo, para ello seleccionaremos aleatoriamente el 25% de la muestra para crear la muestra de testeo.
 
 ```{r}
-# chunk 150
 set.seed(19101990)
 sam <-sample(1:nrow(df),0.75*nrow(df)) 
 
@@ -308,7 +294,6 @@ dft<-df[-sam,]
 Para empezar hacemos un catdes con todas las variables númericas para ver cuales son las que están más relacionadas con nuestro target.
 Las ultilizamos para hacer un modelo lineal general con variables explicativas numéricas. Este modelo es de la familia binomial ya que nuestro target es binario.
 ```{r}
-# chunk 160
 catdes(dfw[,c("y",vars_num,"duration")],1) 
 gm1<-glm( y ~ 
             duration +
@@ -329,7 +314,6 @@ Viendo el resultado de summary, podemos ver variables que tienen el p-value mayo
 Podemos ver que el deviance es inferior al null deviance.
 
 ```{r}
-# chunk 170
 gm2<-glm( y ~ 
             duration +
             nr.employed +
@@ -345,7 +329,6 @@ vif(gm2)
 Haciendo vif podemos ver que emp.var.rate tiene un valor mayor a 3, por lo que decidmos sacarla de nuestro modelo.
 
 ```{r}
-# chunk 180
 gm3<-glm( y ~ 
             duration +
             nr.employed +
@@ -535,7 +518,9 @@ Viendo el resultado del catdes, obtenemos que las variables que están más rela
 gm17<-glm(y~poly(duration,2) +nr.employed +f.pdays +poly(previous,2) +poly(campaign,2) +age +cons.conf.idx+poutcome+ f.influentMonth + job+ contact+ default+ marital+ housing+ education, family = binomial, data = dfw)
 Anova(gm17)
 ```
+
 Seguimos cribando dado el resultado del Anova
+
 ```{r}
 gm18<-glm(y~poly(duration,2) +nr.employed +poly(campaign,2) +age +poutcome+ f.influentMonth + contact+ default+ housing, family = binomial, data = dfw)
 Anova(gm18)
@@ -574,12 +559,15 @@ Vemos que los dos modelos con interacciones dan mejor que nuestro modelo, entre 
 
 
 ## Validación
+
+Para la validación analisamos los gráficos
 ```{r}
 par(mfrow=c(2,2))
 plot(gm21)
 par(mfrow=c(1,1))
 residualPlots(gm21)
 ```
+#preguntar si tiene sentido analisar estos graficos
 
 
 ```{r}
@@ -590,8 +578,31 @@ which(row.names(df)==27553)
 ```
 
 
-# hacer tablas de confusion para el targer binario, y las predicciones. Para el numerico no hay qu ehacer predicciones
+```{r}
+dataroc<-prediction(predict(gm21, type="response"),dfw$y)
+par(mfrow=c(1,2))
+plot(performance(dataroc,"err"))
+plot(performance(dataroc,"tpr","fpr"))
+abline(0,1,lty=2)
+```
 
 
+Estamos cogiendo los betas de este modelo y aplicandolos a las variables explicativas del dft, para así optener las predicciones según nuestr modelo.
+Montamos una tabla con las predicciones y los datos reales a modo de matriz de confusión, del cual su diagonal nos indica la cantidad de aciertos.
 
+```{r}
+p<-factor(ifelse(predict(gm21, dft, type = "response") < 0.4, 0, 1 ))
+tabConfusion<-table(p, dft[,"y"])
+```
 
+Para calcular la capacidad predictiva del modelo, bastará con sumar la diagonal de la matriz de confusión y dividirla entre el número de observaciones.
+
+```{r}
+capacidadPredictiva <- (tabConfusion[1,1] + tabConfusion[2,2])/nrow(dft)
+```
+ 
+ Tenemos un 91,42% de aciertos con nuestro modelo.
+ 
+ 
+ 
+ 
