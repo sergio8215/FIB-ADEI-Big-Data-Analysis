@@ -65,7 +65,8 @@ Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-v
 
 Al ver el resultado de Anova, podemos ver resultados muy parecidos.
 
-Ahora probaremos seleccionando las variables a partir de la criba anterior: #preguntar diferencia summary y Anova, sabemos que el Anova nos dice para cada variable la probabilidad de que el modelo sea igual con o sin esta variable mediante el p-value, entonces que nos dice el summary de diferente?
+Ahora probaremos seleccionando las variables a partir de la criba anterior: #preguntar diferencia summary y Anova, sabemos que el Anova nos dice para cada variable la probabilidad de que el modelo sea igual con o sin esta variable mediante el p-value, entonces que nos dice el summary de diferente? Res. Hay que usar los dos. El anova dice cuales variables iene los efectos netos relevantes.
+. al principio de todo no usar anova porque dan lo mismo.
 
 ```{r}
 # chunk 20
@@ -97,7 +98,8 @@ Ahora procederemos a comprobar el resultado usando la función step, conocida co
 
 ```{r}
 # chunk 30
-m4<-step(m)
+# hacer un vif antes del step, este chunk sobra.
+m4<-step(m) #para reducir las variables que no son relevantes. no la apliquemos al primer cambio porque debemos pulir un poco el modelo primero. quitar variables correlacionadas etc, lueego de que no hay problemas de colinealidad tenemos las variabls significativas usamos el step que nos quitaras las cariables redundantes segun el criterio bayesiano.
 ```
 Al aplicar el metodo step, vemos que no hace niguna criba más y se queda con el mismo modelo que ya nosotros habiamos cribado. 
 
@@ -109,7 +111,8 @@ m5<-step(m,k=log(nrow(df)))
 summary(m5)
 par(mfrow=c(2,2))
 plot(m5)
-par(mfrow=c(1,1))
+par(mfrow=c(1,1)) # la viad e eliminacion de las variablesredundantes que hemos seguido si se pone de acuerdo con este step.
+# asi que si dice que ya esta bien, en esta fase l usamos como confirmacion. de las partes mas adelante no
 ```
 
 La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign), ya que en el primer step del volcado vemos que sin la variable p-days el valor AIC, en este caso BIC, es menor.
@@ -184,18 +187,18 @@ marginalModelPlots(m20)
 ```
 #pregunta la validacion la podemos hacer aqui o debe ser al final de este bloque.
 Analizando los gráficos:   
-  - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. En nuestro caso el resultado es aceptable.  
+  - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. En nuestro caso el resultado es aceptable.   # hay patron pero no se puede hacer nada con una culaidad tan pesima, es una hoja
   - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, es una recta bastante aceptable.  
-  - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line.  
-  - Residuals Vs Leverage.   # preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.
-  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente.  
-  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. #preguntar el resultado del grafuco, que en el primero la linea azul cae en picada al final
+  - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line. #pero es una esterestisidad que es imposible de corregir de manera facil, es una replca de la primera 
+  - Residuals Vs Leverage.   # preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.... lo podemos mirar en las transparencias de teoria 5 4 o 3 veces la mediana del leverage, hay que dibujarlo o valorarlo de alguna maeraa , hacer el influence polot que nos dara la distancia de coolk(ya esta hecho)
+  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente. #el boxplot de la dist de cook nos dira cualind es influyente, hay unoq ue lo es 
+  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. #preguntar el resultado del grafuco, que en el primero la linea azul cae en picada al final. no se sabe lo de campaign, parece que hay algo raro, alguna observacion rara. hay que ver a ofondo, seguramente saldra como influente si es el caso
 
 Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
 ```{r}
 # chunk 100
 matplot(dfbetas(m9), type="l", col=2:4,lwd=2)
-Boxplot(cooks.distance(m9)) #preguntar nos sale el 3660 pero en el grafico anterior no sale, porque? y si hay que quitarlo al final, porque al final?
+Boxplot(cooks.distance(m9)) #preguntar nos sale el 3660 pero en el grafico anterior no sale, porque? y si hay que quitarlo al final, porque al final?# es influente porque nos hace meter variables explicativas. no lo quitamos no se sabe, cuando tengamos unacierta seguridad sobre las variables numericastransformaciones t favtore podemos plantearnos eso de quitarla o no. si lo hacemos al final de todo recalculamos el model t vemos que todas las ariales que sean significativas sean coeerentes quitando el influente
 ```
 Consideramos que hay un individuo que repercute demasiado en los datos, aún así no lo eliminaremos hasta el final.
 
@@ -228,15 +231,15 @@ Viendo el resultado del Anova, podemos ver que los p-values son inferiores a 0.1
 
 ## Interacciones
 
-#preguntar que significa hacer interaccion entre factor y covariate (esta en el enunciado tercer titulo en negritas).
+#preguntar que significa hacer interaccion entre factor y covariate (esta en el enunciado tercer titulo en negritas). se refiere a varible numerica explicativa(covariete) No usar month proque tien muchos niveles y seria un interaccion complicadaa
 #preguntar se debe hacer asi? comparando el modelo con el step. Porque? cual cogemos usando el anova.
 ```{r}
 # chunk 130
-m30<-lm(log(duration)~(campaign+f.pdays+month)^2,data=df)
+m30<-lm(log(duration)~(campaign+f.pdays+month)^2,data=df)#miramos que meses de verdad sn relevantes de la resta apara crear un factor que tenga menos niveles. season deben de como este no sirve, hayq ue ver la agrupacion correcta de month que nos perita capturar esta particularidad de month isn consumir tantos grados de libertad.
 summary(m30)
 m31<-step(m30,k=log(nrow(df)))
 Anova(m31)
-anova(m31,m30) # Fisher test - Priority to BIC criteria
+anova(m31,m30) #es una decsion nuestra que modelo usamos de estos dos modelos diferentes, se a cargado el month potque tiene muchos parametros.# Fisher test - Priority to BIC criteria
 
 ```
 
@@ -252,7 +255,7 @@ par(mfrow=c(1,1))
 2- Normal Q-Q: No se asemeja a la recta normal.
 3- Scale-Location: Parece ser un poco homocedastica
 4- Residual Vs Leverage:
-
+# mirar el influent y boxplot de la dist de cook
 
 # Modelización con target binario
 
@@ -269,7 +272,6 @@ dft<-df[-sam,]
 ```
 
 ## Modelización con variables explicativas numéricas
-
 
 Para empezar hacemos un catdes con todas las variables númericas para ver cuales son las que están más relacionadas con nuestro target.
 Las ultilizamos para hacer un modelo lineal general con variables explicativas numéricas. Este modelo es de la familia binomial ya que nuestro target es binario.
@@ -289,8 +291,8 @@ gm1<-glm( y ~
             cons.conf.idx, family = binomial, data = dfw)
 summary(gm1)
 
-#preguntar se puede usar el step?
-#preguntar, no es necesario Anova aqui? cual es el mas indicado summary o Anova
+#preguntar se puede usar el step? no, son cosas distintas, el catdes te dce cuales sn relevantes por separads, mejor usar Anova
+#preguntar, no es necesario Anova aqui? cual es el mas indicado summary o Anova-> Anova, aunque tambien se puede usar summary, igual que antes.
 ```
 
 Viendo el resultado de summary, podemos ver variables que tienen el p-value mayor a 0.1 (cons.cinf.idx, euribor3m), por lo que procedemos a quitarlas de nuestro modelo. 
@@ -332,7 +334,7 @@ vif(gm3)
 ## Modelización con variables explicativas numéricas y categóricas
 ## Interacciones
 ## Validación
-
+# hacer tablas de confusion para el targer binario, y las predicciones. Para el numerico no hay qu ehacer predicciones
 
 #preguntar en que momento quitar esta observacion
 ```{r}
