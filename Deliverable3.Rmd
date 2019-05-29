@@ -551,13 +551,45 @@ summary(gm19)
 Hay que ver que todos los coeficientes sean calculables y que no tengamos ningun NA en el summary, en nuestro caso no tenemos niguno.
 
 ## Interacciones
+
+Primero probamos con todas las interacciones posibles de orden 2 para hacernos una idea de las interacciones que podemos usar de muestra.
+
 ```{r}
 gm20<-glm(y~ (poly(duration,2) +nr.employed +poly(campaign,2) +age +poutcome+ f.influentMonth + contact+ default+ housing)^2, family = binomial, data = dfw)
 Anova(gm20)
 ```
 
+Elegiremos una interacción factor por factor y factor por numérica de entre todas las interacciones, cuyos p-values son los más convincentes. Comprobamos la bondad de la interacción factor factor
+
+```{r}
+gm21<-glm(y~ poly(duration,2) +nr.employed +poly(campaign,2) +age +poutcome+ f.influentMonth*contact+ default+ housing, family = binomial, data = dfw)
+
+gm22<-glm(y~ poly(duration,2) +nr.employed +poly(campaign,2)*f.influentMonth  +age +poutcome+ contact+ default+ housing, family = binomial, data = dfw)
+
+BIC(gm21,gm20)
+BIC(gm22,gm20)
+
+```
+Vemos que los dos modelos con interacciones dan mejor que nuestro modelo, entre estos vemos que el de menor BIC es el de la interacción de f.influentMonth*contact.
+
 
 ## Validación
+```{r}
+par(mfrow=c(2,2))
+plot(gm21)
+par(mfrow=c(1,1))
+residualPlots(gm21)
+```
+
+
+```{r}
+influencePlot(gm21)
+marginalModelPlots(gm21)
+which(row.names(df)==27860)
+which(row.names(df)==27553)
+```
+
+
 # hacer tablas de confusion para el targer binario, y las predicciones. Para el numerico no hay qu ehacer predicciones
 
 
