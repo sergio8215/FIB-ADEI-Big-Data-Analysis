@@ -40,7 +40,7 @@ if(Sys.info()[[4]]=="PORT_ELISABET"){
   setwd("C:/Users/Sergio/Dropbox/UPC/FIB/Analisis de datos y explotacion de la informacion (ADEI)/FIB-ADEI-Big-Data-Analysis")
 }
 
-#rm(list=ls())
+rm(list=ls())
 load("data-INI2.RData")
 ```
 
@@ -65,18 +65,15 @@ Viendo este volcado, vemos que todas las variables menos, campaign tienen un p-v
 
 Al ver el resultado de Anova, podemos ver resultados muy parecidos.
 
-Ahora probaremos seleccionando las variables a partir de la criba anterior: #preguntar diferencia summary y Anova, sabemos que el Anova nos dice para cada variable la probabilidad de que el modelo sea igual con o sin esta variable mediante el p-value, entonces que nos dice el summary de diferente? Res. Hay que usar los dos. El anova dice cuales variables iene los efectos netos relevantes.
-. al principio de todo no usar anova porque dan lo mismo.
+Ahora probaremos seleccionando las variables a partir de la criba anterior:
 
 ```{r}
 # chunk 20
 m2<-lm(duration~campaign+pdays+previous,data=df)
 summary(m2)
-Anova(m2)
 
 m3<-lm(duration~campaign+pdays,data=df)
 summary(m3)
-Anova(m3)
 vif(m3)
 
 par(mfrow=c(2,2))
@@ -93,26 +90,14 @@ Finalmente hacemos el análisis de residuos con vif, el cual  nos dice si existe
 
 Viendo el plot de la normal Q-Q, vemos que los valores distan mucho de la recta de referencia, con que podemos decir que su distribución no es para nada normal.
 
-
-Ahora procederemos a comprobar el resultado usando la función step, conocida como Akaike o BIC.
-
-```{r}
-# chunk 30
-# hacer un vif antes del step, este chunk sobra.
-m4<-step(m) #para reducir las variables que no son relevantes. no la apliquemos al primer cambio porque debemos pulir un poco el modelo primero. quitar variables correlacionadas etc, lueego de que no hay problemas de colinealidad tenemos las variabls significativas usamos el step que nos quitaras las cariables redundantes segun el criterio bayesiano.
-```
-Al aplicar el metodo step, vemos que no hace niguna criba más y se queda con el mismo modelo que ya nosotros habiamos cribado. 
-
-
-Si probamos con la versión bayesiana (del BIC):
+Para quitar las variables redundantes probamos con la versión bayesiana del step (del BIC):
 ```{r}
 # chunk 40
 m5<-step(m,k=log(nrow(df)))
 summary(m5)
 par(mfrow=c(2,2))
 plot(m5)
-par(mfrow=c(1,1)) # la viad e eliminacion de las variablesredundantes que hemos seguido si se pone de acuerdo con este step.
-# asi que si dice que ya esta bien, en esta fase l usamos como confirmacion. de las partes mas adelante no
+par(mfrow=c(1,1))
 ```
 
 La versión bayesiana es conveniente usarla en casos de muestras grandes. En este caso vemos que se queda con una sola variable (campaign), ya que en el primer step del volcado vemos que sin la variable p-days el valor AIC, en este caso BIC, es menor.
@@ -145,10 +130,6 @@ Viendo el resultado del Anova, procedemos a descartar las variables cuyo valor d
 m7<-lm(log(duration)~campaign+pdays+nr.employed,data=df)
 summary(m7)
 Anova(m7)
-
-par(mfrow=c(2,2))
-plot(m7)
-par(mfrow=c(1,1))
 ```
 Viendo los p-values, nos encontramos que la variable nr.employed es mayor a 0.1, por lo que procedemos a eliminarla de nuestro modelo.
 
@@ -161,10 +142,6 @@ m9<-lm(log(duration)~campaign+pdays,data=df)
 summary(m9)
 Anova(m9)
 vif(m9)
-
-par(mfrow=c(2,2))
-plot(m9)
-par(mfrow=c(1,1))
 ```
 Viendo el valor final del r-square, podemos ver que este no es un buen modelo. También los que no puede decir es que las variables no representan a nuestro target, esto ya lo pudimos ver en el deliverable2.
 
@@ -182,25 +159,9 @@ vif(m20)
 par(mfrow=c(2,2))
 plot(m20)
 par(mfrow=c(1,1))
-influencePlot(m20)
-marginalModelPlots(m20)
-```
-#pregunta la validacion la podemos hacer aqui o debe ser al final de este bloque.
-Analizando los gráficos:   
-  - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. En nuestro caso el resultado es aceptable.   # hay patron pero no se puede hacer nada con una culaidad tan pesima, es una hoja
-  - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, es una recta bastante aceptable.  
-  - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line. #pero es una esterestisidad que es imposible de corregir de manera facil, es una replca de la primera 
-  - Residuals Vs Leverage.   # preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.... lo podemos mirar en las transparencias de teoria 5 4 o 3 veces la mediana del leverage, hay que dibujarlo o valorarlo de alguna maeraa , hacer el influence polot que nos dara la distancia de coolk(ya esta hecho)
-  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que no hay niguna que sea excesivamente influente. #el boxplot de la dist de cook nos dira cualind es influyente, hay unoq ue lo es 
-  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. #preguntar el resultado del grafuco, que en el primero la linea azul cae en picada al final. no se sabe lo de campaign, parece que hay algo raro, alguna observacion rara. hay que ver a ofondo, seguramente saldra como influente si es el caso
 
-Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
-```{r}
-# chunk 100
-matplot(dfbetas(m9), type="l", col=2:4,lwd=2)
-Boxplot(cooks.distance(m9)) #preguntar nos sale el 3660 pero en el grafico anterior no sale, porque? y si hay que quitarlo al final, porque al final?# es influente porque nos hace meter variables explicativas. no lo quitamos no se sabe, cuando tengamos unacierta seguridad sobre las variables numericastransformaciones t favtore podemos plantearnos eso de quitarla o no. si lo hacemos al final de todo recalculamos el model t vemos que todas las ariales que sean significativas sean coeerentes quitando el influente
 ```
-Consideramos que hay un individuo que repercute demasiado en los datos, aún así no lo eliminaremos hasta el final.
+
 
 ## Modelización con variables explicativas numéricas y categóricas
 
@@ -208,18 +169,43 @@ Creamos una variable que contiene las variables categóricas y categóricas fact
 ```{r}
 # chunk 110
 vars_cat_total = c(vars_cat, names(df[,22:29]))
-condes(df[,c("duration",vars_cat_total)],1, proba= 0.01)
+condes(df[,c("duration",vars_cat_total)],1, proba= 0.05)
 ```
 Al hacer condes, con todas las variables categóricas, contemplamos el uso de f.campaign y month para nuestro modelo, ya que la probabilidad de que no tengan relación con el target está por debajo del 0.01. Como nos sale la versión categórica de campaign que también nos sale en el modelo númerico, debemos elegir entre una u otra pero nunca las dos a la vez.  
 
-En vista de que la variable numérica pdays aporta una información errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una información más rigurosa, ya que se clasifican entre contactados y no contactados.  
+En vista de que la variable numérica pdays aporta una información errante ya que aquellos que no fueron contactados tienen asignados un valor que no les corresponde, decidimos utilizar f.pdays porque contiene una información más rigurosa, ya que se clasifican entre contactados y no contactados. 
+
+Debido a que la variable month es una variable con muchos niveles y eso no es bueno para la modelización, decidimos reagruparla.
+
+```{r}
+#chunk 115
+# Months to groups
+df$f.influentMonth <- 3
+# 1 level - mar-may 
+aux<-which(df$month %in% c("month.apr","month.jun","month.aug"))
+df$f.influentMonth[aux] <-1
+
+# 2 level - jun-ago
+aux<-which(df$month %in% c("month.sep","month.may","month.jul"))
+df$f.influentMonth[aux] <-2
+
+# 3 level - aug-feb
+aux<-which(df$month %in% c("month.mar","month.dec","month.oct","month.nov"))
+df$f.influentMonth[aux] <-3
+
+df$f.influentMonth<-factor(df$f.influentMonth,levels=1:3,labels=c("apr-jun-aug","sep-may-jul","mar-dec-oct-nov"))
+levels(df$f.influentMonth)<-paste0("f.influentMonth.",levels(df$f.influentMonth)) # Hacemos las etiquetas m?s informativas
+summary(df$f.influentMonth)
+
+```
+
 
 Contrastamos un modelo con campaign o con f.campaign para ver cual es mejor.
 
 ```{r}
 # chunk 120
-m22<-lm(log(duration)~campaign+f.pdays+month,data=df)
-m23<-lm(log(duration)~f.pdays+f.campaign+month,data=df)
+m22<-lm(log(duration)~campaign+f.pdays+f.influentMonth,data=df)
+m23<-lm(log(duration)~f.pdays+f.campaign+f.influentMonth,data=df)
 BIC(m23,m22)
 
 # Ya que nos quedamos con el modelo m22
@@ -231,31 +217,75 @@ Viendo el resultado del Anova, podemos ver que los p-values son inferiores a 0.1
 
 ## Interacciones
 
-#preguntar que significa hacer interaccion entre factor y covariate (esta en el enunciado tercer titulo en negritas). se refiere a varible numerica explicativa(covariete) No usar month proque tien muchos niveles y seria un interaccion complicadaa
-#preguntar se debe hacer asi? comparando el modelo con el step. Porque? cual cogemos usando el anova.
 ```{r}
 # chunk 130
-m30<-lm(log(duration)~(campaign+f.pdays+month)^2,data=df)#miramos que meses de verdad sn relevantes de la resta apara crear un factor que tenga menos niveles. season deben de como este no sirve, hayq ue ver la agrupacion correcta de month que nos perita capturar esta particularidad de month isn consumir tantos grados de libertad.
-summary(m30)
-m31<-step(m30,k=log(nrow(df)))
+m30<-lm(log(duration)~(campaign+f.pdays+f.influentMonth)^2,data=df)
+Anova(m30)
+```
+Vemos que la interacción entre campaign y nuestra nueva variable factor month es significativa, por lo tanto creamos un nuevo modelo m31 con esa interacción. Por otro lado aunque f.pdays con f.influentMoth tiene un p-value muy alto de 0.4, realizamos la interacción porque lo pide el enunciado.
+
+```{r}
+#chunk 140
+m31<-lm(log(duration)~(f.influentMonth*campaign+f.pdays),data=df)
 Anova(m31)
-anova(m31,m30) #es una decsion nuestra que modelo usamos de estos dos modelos diferentes, se a cargado el month potque tiene muchos parametros.# Fisher test - Priority to BIC criteria
+
+m32<-lm(log(duration)~(f.influentMonth*f.pdays+campaign),data=df)
+Anova(m32)
 
 ```
+Vemos que el modelo 31 es aceptable, sus p-values son aceptables, mientras como ya era previsible el modelo m32 lo descartamos.
 
 ## Validación
 
 ```{r}
 # chunk 140
 par(mfrow=c(2,2))
-plot(m30)
+plot(m31)
 par(mfrow=c(1,1))
+residualPlots(m31)
 ```
-1- Residual Vs Fitted: Viendo la gráfica podemos ver que 
-2- Normal Q-Q: No se asemeja a la recta normal.
-3- Scale-Location: Parece ser un poco homocedastica
-4- Residual Vs Leverage:
-# mirar el influent y boxplot de la dist de cook
+
+
+Analizando los gráficos:   
+  - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. A pesar de que podemos ver un patrón en el gráfico, podemos decir que el resultado no es aceptable.
+  - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, se acerca más a la normal, pero sigue siendo poco aceptable.  
+  - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line. Pero es una heterocedasticidad que es imposible de corregir de manera fácil, es una replica del primer plot.
+  
+  - Residuals Vs Leverage.   #preguntar otra vez.... preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.... lo podemos mirar en las transparencias de teoria 5 4 o 3 veces la mediana del leverage, hay que dibujarlo o valorarlo de alguna maeraa , hacer el influence polot que nos dara la distancia de coolk(ya esta hecho)
+  
+  - ResidualPlot.
+  
+
+```{r}
+#chunk 150
+influencePlot(m31)
+marginalModelPlots(m31)
+which(row.names(df)==27860)
+which(row.names(df)==27553)
+```
+
+  - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que hay individuos bastante influyentes, el 3329 y 3293 que para nuestra muestra serian los individuos.
+  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. Podemos ver que para nuestros dis gráficos #preguntar, solo se puede usar para variabls numericas?? podemos usarlo aqui donde la unica variable numerica es campaign?? 
+
+Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
+```{r}
+# chunk 160
+matplot(dfbetas(m31), type="l", col=2:4,lwd=2)
+Boxplot(cooks.distance(m31))
+```
+Consideramos que hay un individuo que repercute demasiado en los datos (3293), aún así no lo eliminaremos.
+
+
+```{r}
+#chunk 170  
+# Sin el individuo que más afecta
+
+m9m<-lm(log(duration)~(f.influentMonth*campaign+f.pdays),data=df[c(-3293,-3290,-3329),]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
+Boxplot(cooks.distance(m9m))
+summary(m9m)
+summary(m31)
+```
+Podemos ver que el nuevo modelo sin los individuos influyentes tiene una mejora en el r-square, aunque este sigue siendo muy bajo.
 
 # Modelización con target binario
 
@@ -273,11 +303,13 @@ dft<-df[-sam,]
 
 ## Modelización con variables explicativas numéricas
 
+### Modelo simple
+
 Para empezar hacemos un catdes con todas las variables númericas para ver cuales son las que están más relacionadas con nuestro target.
 Las ultilizamos para hacer un modelo lineal general con variables explicativas numéricas. Este modelo es de la familia binomial ya que nuestro target es binario.
 ```{r}
 # chunk 160
-catdes(dfw[,c("y",vars_num,"duration")],1) #pregunar hay que poner duration??  hay que poner todas las variables? nos salen con pvalue bajo
+catdes(dfw[,c("y",vars_num,"duration")],1) 
 gm1<-glm( y ~ 
             duration +
             nr.employed +
@@ -290,9 +322,7 @@ gm1<-glm( y ~
             age +
             cons.conf.idx, family = binomial, data = dfw)
 summary(gm1)
-
-#preguntar se puede usar el step? no, son cosas distintas, el catdes te dce cuales sn relevantes por separads, mejor usar Anova
-#preguntar, no es necesario Anova aqui? cual es el mas indicado summary o Anova-> Anova, aunque tambien se puede usar summary, igual que antes.
+Anova(gm1)
 ```
 
 Viendo el resultado de summary, podemos ver variables que tienen el p-value mayor a 0.1 (cons.cinf.idx, euribor3m), por lo que procedemos a quitarlas de nuestro modelo. 
@@ -328,22 +358,207 @@ vif(gm3)
 ```
 
 
-### Modelo simple
-### Modelo con transformaciones
 ### Modelo de regresión polinómica
-## Modelización con variables explicativas numéricas y categóricas
-## Interacciones
-## Validación
-# hacer tablas de confusion para el targer binario, y las predicciones. Para el numerico no hay qu ehacer predicciones
 
-#preguntar en que momento quitar esta observacion
+Hacemos un tanteo aplicando una tranformación polinomica de segundo grado a cada una de las variables.
+
 ```{r}
-# Sin el individuo que más afecta
- m9m<-lm(log(duration)~campaign+pdays,data=df[-3660,]) # ACORDARNOS DE MOVERLO AL FINAL - se deberia eliminar al final de todo no aqui, ya que al final tendremos todos los datos
-Boxplot(cooks.distance(m9m))
-coef(m9m)
+gm4<-glm(y~
+           poly(duration,2) +
+            poly(nr.employed,2) +
+            poly(pdays,2) +
+            poly(previous,2) +
+            poly(campaign,2) +
+            poly(age,2) +
+            poly(cons.conf.idx,2), family = binomial, data = dfw
+           )
+summary(gm4)
 ```
 
+En vista del summary, podemos omitir el termino cuadratico de las variables nr.employed, pdays, age, con.conf.idx.
+
+```{r}
+gm5<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+summary(gm5)
+Anova(gm5)
+vif(gm5)
+marginalModelPlots(gm5)
+```
+Podemos ver que los p-values son inferiores a 0.1 para todas las variables, también vemos que el resultado del vif no presenta colinealidad.
+
+Generalmente podemos ver que el modelo no se acerca tanto a los valores reales.
+
+## Modelización con variables explicativas numéricas y categóricas
+```{r}
+# duration y f.duration
+gm6<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+gm7<-glm(y~
+           f.duration +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+BIC(gm7,gm6)
+
+# pdays y f.pdays
+gm8<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+gm9<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            f.pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+BIC(gm9,gm8)
+
+# previous y f.previous
+gm10<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+gm11<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            f.previous +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+BIC(gm11,gm10)
+
+# campaign vs f.campaign
+gm12<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+gm13<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            f.campaign +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+BIC(gm13,gm12)
+
+# age vs f.age
+gm14<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+gm15<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            f.age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+BIC(gm15,gm14)
+```
+
+A partir de los resultados de los BICs, nos quedamos con las versiones de las varibles númericas o de factores cuyo valor de BIC es menor.
+
+Con el resutlado obtenido anteriormente, creamos un nuevo modelo.
+
+```{r}
+gm16<-glm(y~
+           poly(duration,2) +
+            nr.employed +
+            f.pdays +
+            poly(previous,2) +
+            poly(campaign,2) +
+            age +
+            cons.conf.idx, family = binomial, data = dfw
+           )
+summary(gm16)
+Anova(gm16)
+vif(gm16)
+```
+Comprobamos el resultado y son correctos.
+
+Ahora añadimos el resto de factores, utilizmaos un catdes para ver cuales están más relacionadas con nuesto target.
+```{r}
+catdes(dfw[,c("y",vars_cat)],1) 
+```
+
+Viendo el resultado del catdes, obtenemos que las variables que están más relacionadsa son outcome, month, job, contact, default, marital, housing y education. Como month tiene muchos niveles decidimos usar el month factorizado.
+
+```{r}
+gm17<-glm(y~poly(duration,2) +nr.employed +f.pdays +poly(previous,2) +poly(campaign,2) +age +cons.conf.idx+poutcome+ f.influentMonth + job+ contact+ default+ marital+ housing+ education, family = binomial, data = dfw)
+Anova(gm17)
+```
+Seguimos cribando dado el resultado del Anova
+```{r}
+gm18<-glm(y~poly(duration,2) +nr.employed +poly(campaign,2) +age +poutcome+ f.influentMonth + contact+ default+ housing, family = binomial, data = dfw)
+Anova(gm18)
+vif(gm18)
+```
+Ahora las variables nos dan aceptables, con p-values menores a 0.1 y sin colinealidad.
+
+Ahora hacemos un step con el criterio bayesiano, para validar el modelo
+```{r}
+gm19<-step(gm18,k=log(nrow(dfw)))
+summary(gm19)
+```
+Hay que ver que todos los coeficientes sean calculables y que no tengamos ningun NA en el summary, en nuestro caso no tenemos niguno.
+
+## Interacciones
+```{r}
+gm20<-glm(y~ (poly(duration,2) +nr.employed +poly(campaign,2) +age +poutcome+ f.influentMonth + contact+ default+ housing)^2, family = binomial, data = dfw)
+Anova(gm20)
+```
+
+
+## Validación
+# hacer tablas de confusion para el targer binario, y las predicciones. Para el numerico no hay qu ehacer predicciones
 
 
 
