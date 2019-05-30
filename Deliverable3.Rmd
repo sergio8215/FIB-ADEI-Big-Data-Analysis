@@ -230,7 +230,6 @@ Vemos que el modelo 31 es aceptable, sus p-values son aceptables, mientras como 
 par(mfrow=c(2,2))
 plot(m31)
 par(mfrow=c(1,1))
-residualPlots(m31)
 ```
 
 
@@ -238,12 +237,8 @@ Analizando los gráficos:
   - Residual VS Fitted. En este gráfico muestra los residuos de los valores predecidos. Lo deseable es que los puntos estén uniformemente dispersos, para poderlo contrastar el gráfico esta provisto de una recta smoother que conviene que sea horizontal, y uniforme. A pesar de que podemos ver un patrón en el gráfico, podemos decir que el resultado no es aceptable.
   - Normal Q-Q.  Este plot nos muestra la tendencia a una distribución normal de los residuos, esta provista de una recta diagonal de referencia en la que se espera que los residuos se ajusten lo máximo posible. En nuestro caso, apreciamos ciertas desviaciones en los extremos de la recta, aunque si lo comparamos con plots anteriores, se acerca más a la normal, pero sigue siendo poco aceptable.  
   - Scale-Location. Este plot hace referencia a la varianza de los valores de la predicción, si se mantiene constante implica homocedasticidad, de lo contrario heterocedasticidad que se vería reflejada en una nube de puntos en forma de cono. Para nuestro caso, podemos ver que el gráfico tiene una tendencia a cono que además se evidencia con la desviación de la smoother line. Pero es una heterocedasticidad que es imposible de corregir de manera fácil, es una replica del primer plot.
+  - Residuals Vs Leverage. Vemos que hay un indivifuo con mucho leverage, el 27860. Utilizaremos el influencePlot para poder ver con más detalles los individuos influyentes. 
   
-  - Residuals Vs Leverage.   #preguntar otra vez.... preguntar, no vemos las curvas de nivel en el grafico, y como se ven reflejadas las observaciones influyentes, y que significa que el leverage sea el factor de anclaje.... lo podemos mirar en las transparencias de teoria 5 4 o 3 veces la mediana del leverage, hay que dibujarlo o valorarlo de alguna maeraa , hacer el influence polot que nos dara la distancia de coolk(ya esta hecho)
-  
-  - ResidualPlot.
-  
-
 ```{r}
 #chunk 150
 influencePlot(m31)
@@ -253,9 +248,10 @@ which(row.names(df)==27553)
 ```
 
   - InfluenPLot. Nos muestra las individuos más influentes, esto se puede ver gráficamente a través del radio de las circunferencias. En nuestro caso, viendo el gráfico podemos ver que hay individuos bastante influyentes, el 3329 y 3293 que para nuestra muestra serian los individuos.
-  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. Podemos ver que para nuestros dis gráficos #preguntar, solo se puede usar para variabls numericas?? podemos usarlo aqui donde la unica variable numerica es campaign?? 
+  - MarginalModelPlot. Nos muestra las discrepancias entre las predicciones de nuestro modelo y los resultados reales de nuestras observaciones desglosado por variables, utiliza dos líneas de soporte, una roja para la tendencia del modelo y otra azul referente a cada variable. Podemos ver que para nuestros modelo, las lineas tienen un poco de desviación entre ellas, pero nada muy relevante.
 
 Trabajamos con el mejor modelo obtenido, y vemos que individuos influyen más en nuestros datos para saber si están afectando nuestro resultado.
+
 ```{r}
 matplot(dfbetas(m31), type="l", col=2:4,lwd=2)
 Boxplot(cooks.distance(m31))
@@ -562,20 +558,19 @@ Vemos que los dos modelos con interacciones dan mejor que nuestro modelo, entre 
 
 Para la validación analisamos los gráficos
 ```{r}
-par(mfrow=c(2,2))
-plot(gm21)
-par(mfrow=c(1,1))
 residualPlots(gm21)
 ```
-#preguntar si tiene sentido analisar estos graficos
 
+Con el residualPlots, podemos ver que tenemos una observación en común que es muy influente, como ahora vamos a hacer el influencePlot, podremos detereminar si efectivamente esta observación es demasiado influyente.
 
 ```{r}
 influencePlot(gm21)
-marginalModelPlots(gm21)
-which(row.names(df)==27860)
-which(row.names(df)==27553)
+which(row.names(df)==11245)
+which(row.names(df)==16636)
+which(row.names(df)==29317)
 ```
+
+Viendo el resultado del influentPlot, no vemos al individuo 200, que nos salie en la grafica de residuos, lo que nos puede decir que no influye demasiado en nuestro modelo.
 
 
 ```{r}
@@ -603,6 +598,25 @@ capacidadPredictiva <- (tabConfusion[1,1] + tabConfusion[2,2])/nrow(dft)
  
  Tenemos un 91,42% de aciertos con nuestro modelo.
  
+ Nos damos cuenta que por los datos que tenemos no es posible que tengamos una capacidad predictiva tan grande, por lo que decidimos comparar con el modelo null.
+ 
+```{r}
+gmnull<-glm(y~ 1, family = binomial, data = dfw)
+pnull<-factor(ifelse(predict(gmnull, dft, type = "response") < 0.4, 0, 1 ))
+tabConfusionNull<-table(pnull, dft[,"y"])
+capacidadPredictivaNull <- (tabConfusionNull[1,1] + 0)/nrow(dft)
+```
+ 
+ Con el modelo Null tenemos un 89,58% de aciertos, ahora viendo la diferencia entre nuestr modelo y el null tenemos que
+ 
+```{r}
+MejoraModelo <- capacidadPredictiva - capacidadPredictivaNull
+MejoraModelo*100
+```
+
+Tenemos que nuestro modelo es 1.84% mejor que el modelo más basico. El hecho de que la capacidad predictiva sea tan alta en ambos casos, es debido a que la gran mayoria de las observaciones tienen como valor de respuesta "no", esto hace que cualquier modelo por tonto que sea tenga una buena capacidad predictiva.
+
+
  
  
  
